@@ -7,7 +7,7 @@ authors = ["J Wylie Cullick <wylie@terebinth.is>"]
 [dependencies]
 
 gloo-console = "0.2.1"
-js-sys = "0.3"
+js-sys = "0.3.58"
 yew = { version = "0.19.3" }
 yew-agent = { version = "0.1.0" }
 # yew = { path = "../yew/packages/yew", features = ["csr"] }

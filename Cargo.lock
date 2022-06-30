@@ -822,7 +822,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "yew_webgl_game"
+name = "yew_webgl2_game"
 version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",

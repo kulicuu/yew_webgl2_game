@@ -85,18 +85,16 @@ impl Game {
 
 
 
-        let deltas_uniforms_location = gl.get_uniform_block_index(&shader_program, "Deltas");
-        // gl.get_uniform_block_index(program,)
-        // gl.uniformBlockBinding(program, massUniformsLocation, 0);
-
         let mut timestamp = 0.0;
 
 
 
-        let vertices: Vec<f32> = vec![
-            -0.1828, -0.8411, 0.3393993, -0.777, -0.3333442, 0.29555444, -0.0333888, 0.3, 0.5, -0.3, 0.2, 0.2,
-        ];
 
+
+
+
+        // gl.bind_buffer_base(GL::UNIFORM_BUFFER, 0, Some(&deltas_buffer));
+        // gl.buffer_data_with_array_buffer_view(GL::UNIFORM_BUFFER, &deltas_slice, GL::STATIC_DRAW);
 
         let vertices_vv: Vec<f32> = vec![
             0.0, 0.034,
@@ -106,7 +104,9 @@ impl Game {
 
         let vertex_buffer = gl.create_buffer().unwrap();
         let verts = js_sys::Float32Array::from(vertices_vv.as_slice());
-        // let verts = js_sys::Float32Array::from(vertices.as_slice());
+
+
+
 
         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vertex_buffer));
         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &verts, GL::STATIC_DRAW);
@@ -116,6 +116,7 @@ impl Game {
         let verts_position = gl.get_attrib_location(&shader_program, "a_position") as u32;
         gl.vertex_attrib_pointer_with_i32(verts_position, 2, GL::FLOAT, false, 0, 0);
         gl.enable_vertex_attrib_array(verts_position);
+        // gl.enable_vertex_attrib_array(deltas_uniforms_location);
 
         let gl = gl.clone();
 
@@ -135,28 +136,24 @@ impl Game {
         let width = width.clone();
         let height = height.clone();
 
-        gl.clear_color(0.0, 0.0, 0.0, 1.0);
+        // gl.clear_color(0.0, 0.0, 0.0, 1.0);
 
-        gl.enable(GL::BLEND);
-        gl.blend_func(GL::ONE, GL::ONE_MINUS_SRC_ALPHA);
+        // gl.enable(GL::BLEND);
+        // gl.blend_func(GL::ONE, GL::ONE_MINUS_SRC_ALPHA);
+
+        let f1_d_location = gl.get_uniform_location(&shader_program, "f1_displacement");
 
         let time_location = gl.get_uniform_location(&shader_program, "u_time");
 
-
-
-
-
-
-
+        let mut x_d = 0.0;
+        let mut y_d = 0.0;
 
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-
-
-
             timestamp+= 23.0;
-            
             gl.uniform1f(time_location.as_ref(), timestamp as f32);
-
+            gl.uniform2f(f1_d_location.as_ref(), x_d, y_d);
+            x_d += 0.0003;
+            y_d += 0.0004;
             gl.draw_arrays_instanced(GL::TRIANGLES, 0, 6, 1);
             Game::request_animation_frame(f.borrow().as_ref().unwrap());
         }) as Box<dyn FnMut()>));
