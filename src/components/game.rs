@@ -67,6 +67,8 @@ impl Game {
     fn render_gl(&mut self, _link: &Scope<Self>) {
         let gl = self.gl.as_ref().expect("GL Context not initialized!");
 
+        
+
         let vert_code = include_str!("./basic.vert");
         let frag_code = include_str!("./basic.frag");
 
@@ -83,18 +85,8 @@ impl Game {
         gl.attach_shader(&shader_program, &frag_shader);
         gl.link_program(&shader_program);
 
-
-
         let mut timestamp = 0.0;
 
-
-
-
-
-
-
-        // gl.bind_buffer_base(GL::UNIFORM_BUFFER, 0, Some(&deltas_buffer));
-        // gl.buffer_data_with_array_buffer_view(GL::UNIFORM_BUFFER, &deltas_slice, GL::STATIC_DRAW);
 
         let vertices_vv: Vec<f32> = vec![
             0.0, 0.034,
@@ -105,9 +97,6 @@ impl Game {
         let vertex_buffer = gl.create_buffer().unwrap();
         let verts = js_sys::Float32Array::from(vertices_vv.as_slice());
 
-
-
-
         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vertex_buffer));
         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &verts, GL::STATIC_DRAW);
 
@@ -116,7 +105,7 @@ impl Game {
         let verts_position = gl.get_attrib_location(&shader_program, "a_position") as u32;
         gl.vertex_attrib_pointer_with_i32(verts_position, 2, GL::FLOAT, false, 0, 0);
         gl.enable_vertex_attrib_array(verts_position);
-        // gl.enable_vertex_attrib_array(deltas_uniforms_location);
+
 
         let gl = gl.clone();
 
@@ -137,7 +126,6 @@ impl Game {
         let height = height.clone();
 
         // gl.clear_color(0.0, 0.0, 0.0, 1.0);
-
         // gl.enable(GL::BLEND);
         // gl.blend_func(GL::ONE, GL::ONE_MINUS_SRC_ALPHA);
 
@@ -148,13 +136,36 @@ impl Game {
         let mut x_d = 0.0;
         let mut y_d = 0.0;
 
+        let mut x2_d = 0.40;
+        let mut y2_d = 0.93;
+
+
+
+        // let ext = gl.get_extension("ANGLE_instanced_arrays").unwrap();
+
+        // let x99 = web_sys::AngleInstancedArrays({ x: 39 });
+        // ext.draw_arrays_instanced_angle;
+
+        // let aia = web_sys::AngleInstancedArrays().unwrap();
+
+        web_sys::AngleInstancedArrays::draw_arrays_instanced_angle(&web_sys::AngleInstancedArrays, GL::TRIANGLES, 0, 6, 2);
+
+
+
+
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             timestamp+= 23.0;
             gl.uniform1f(time_location.as_ref(), timestamp as f32);
-            gl.uniform2f(f1_d_location.as_ref(), x_d, y_d);
+            gl.uniform4f(f1_d_location.as_ref(), x_d, y_d, x2_d, y2_d);
             x_d += 0.0003;
             y_d += 0.0004;
-            gl.draw_arrays_instanced(GL::TRIANGLES, 0, 6, 1);
+            x2_d -= 0.0003;
+            y2_d -= 0.00023;
+
+
+            // web_sys::AngleInstancedArrays::draw_arrays_instanced_angle(GL::TRIANGLES, 0, 6, 2);
+            // ext.draw_arrays_instanced_angle(GL::TRIANGLES, 0, 6, 2);
+            gl.draw_arrays_instanced(GL::TRIANGLES, 0, 6, 2);
             Game::request_animation_frame(f.borrow().as_ref().unwrap());
         }) as Box<dyn FnMut()>));
 
