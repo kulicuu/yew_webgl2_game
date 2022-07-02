@@ -29,11 +29,13 @@ reqwasm = "0.5.0"
 [dependencies.web-sys]
 version = "0.3.58"
 features = [
-  "AngleInstancedArrays",
+  'AngleInstancedArrays',
+  'Event',
+  'EventTarget',
   'HtmlCanvasElement',
+  'MouseEventInit',
   'WebGlBuffer',
   'WebGlProgram',
-  'WebGlRenderingContext',
   'WebGl2RenderingContext',
   'WebGlShader',
   'WebGlUniformLocation',

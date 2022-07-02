@@ -1,4 +1,9 @@
-use web_sys::{HtmlCanvasElement, WebGl2RenderingContext as GL, window};
+use web_sys::{
+    HtmlCanvasElement, WebGl2RenderingContext as GL, 
+    window, AngleInstancedArrays,
+    EventTarget, MouseEvent, WebGlBuffer, WebGlProgram,
+    WebGlUniformLocation,
+};
 use yew::html::Scope;
 use yew::{html, Component, Context, Html, NodeRef};
 use wasm_bindgen::prelude::*;
@@ -8,6 +13,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use gloo_console::log;
+
+use std::f32::consts::PI;
+
+const AMORTIZATION: f32 = 0.95;
 
 pub enum Msg {}
 
@@ -44,14 +53,14 @@ impl Component for Game {
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
-        let canvas = self.node_ref.cast::<HtmlCanvasElement>().unwrap();
-        let gl: GL = canvas
-            .get_context("webgl2")
-            .unwrap()
-            .unwrap()
-            .dyn_into()
-            .unwrap();
-        self.gl = Some(Rc::new(gl));
+        // let canvas = self.node_ref.cast::<HtmlCanvasElement>().unwrap();
+        // let gl: GL = canvas
+        //     .get_context("webgl2")
+        //     .unwrap()
+        //     .unwrap()
+        //     .dyn_into()
+        //     .unwrap();
+        // self.gl = Some(Rc::new(gl));
         self.render_gl(ctx.link());
     }
 }
@@ -65,9 +74,89 @@ impl Game {
     }
 
     fn render_gl(&mut self, _link: &Scope<Self>) {
-        let gl = self.gl.as_ref().expect("GL Context not initialized!");
-
+        let canvas = self.node_ref.cast::<HtmlCanvasElement>().unwrap();
+        let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().unwrap();
+        // let canvas = Rc::new(canvas);
+        let gl: GL = canvas
+            .get_context("webgl2")
+            .unwrap()
+            .unwrap()
+            .dyn_into::<GL>()
+            .unwrap();
         
+        let gl = Some(Rc::new(gl));
+        let gl = gl.as_ref().expect("GL Context not initialized!");
+        // let canvas = Rc::new(canvas);
+        // let document = web_sys::window().unwrap().document().unwrap();
+        // let canvas = document.get_element_by_id("canvas").unwrap();
+        // let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().unwrap();
+
+        // let canvas = canvas.clone();
+        // let canvas = canvas.clone();
+        let event_target: EventTarget = canvas.into();
+
+
+        let drag = Rc::new(RefCell::new(false));
+        let theta = Rc::new(RefCell::new(0.0));
+        let phi = Rc::new(RefCell::new(0.0));
+        let dX = Rc::new(RefCell::new(0.0));
+        let dY = Rc::new(RefCell::new(0.0));
+        let canvas_width = Rc::new(RefCell::new(self.canvas_width as f32));
+        let canvas_height = Rc::new(RefCell::new(self.canvas_height as f32));
+        {
+            let drag = drag.clone();
+            let mousedown_cb = Closure::wrap(Box::new(move |_event: MouseEvent| {
+                *drag.borrow_mut() = true;
+            }) as Box<dyn FnMut(MouseEvent)>);
+            event_target
+                .add_event_listener_with_callback("mousedown", mousedown_cb.as_ref().unchecked_ref())
+                .unwrap();
+            mousedown_cb.forget();
+        }
+
+        {
+            let drag = drag.clone();
+            let mouseup_cb = Closure::wrap(Box::new(move |_event: MouseEvent| {
+                *drag.borrow_mut() = false;
+            }) as Box<dyn FnMut(MouseEvent)>);
+            event_target
+                .add_event_listener_with_callback("mouseup", mouseup_cb.as_ref().unchecked_ref())
+                .unwrap();
+            event_target
+                .add_event_listener_with_callback("mouseout", mouseup_cb.as_ref().unchecked_ref())
+                .unwrap();
+            mouseup_cb.forget();
+        }
+
+        {
+            let theta = theta.clone();
+            let phi = phi.clone();
+            let canvas_width = canvas_width.clone();
+            let canvas_height = canvas_height.clone();
+            let dX = dX.clone();
+            let dY = dY.clone();
+            let drag = drag.clone();
+            let mousemove_cb = Closure::wrap(Box::new(move |event: MouseEvent| {
+                if *drag.borrow() {
+                    let cw = *canvas_width.borrow();
+                    let ch = *canvas_height.borrow();
+                    *dX.borrow_mut() = (event.movement_x() as f32) * 2.0 * PI / cw;
+                    *dY.borrow_mut() = (event.movement_y() as f32) * 2.0 * PI / ch;
+                    *theta.borrow_mut() += *dX.borrow();
+                    *phi.borrow_mut() += *dY.borrow();
+                }
+            }) as Box<dyn FnMut(web_sys::MouseEvent)>);
+            event_target
+                .add_event_listener_with_callback("mousemove", mousemove_cb.as_ref().unchecked_ref())
+                .unwrap();
+            mousemove_cb.forget();
+        }
+
+
+
+
+
+
 
         let vert_code = include_str!("./basic.vert");
         let frag_code = include_str!("./basic.frag");
@@ -75,6 +164,9 @@ impl Game {
         let vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
         gl.shader_source(&vert_shader, vert_code);
         gl.compile_shader(&vert_shader);
+
+        let ans = gl.get_shader_info_log(&vert_shader);
+        log!(ans);
 
         let frag_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
         gl.shader_source(&frag_shader, frag_code);
@@ -86,7 +178,6 @@ impl Game {
         gl.link_program(&shader_program);
 
         let mut timestamp = 0.0;
-
 
         let vertices_vv: Vec<f32> = vec![
             0.0, 0.034,
@@ -109,12 +200,12 @@ impl Game {
 
         let gl = gl.clone();
 
-        let game_state = Rc::new(RefCell::new(GameState {
-            pos_x: 0.3,
-            pos_y: 0.5,
-        }));
+        // let game_state = Rc::new(RefCell::new(GameState {
+        //     pos_x: 0.3,
+        //     pos_y: 0.5,
+        // }));
 
-        let game_state = game_state.clone();
+        // let game_state = game_state.clone();
 
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
@@ -125,31 +216,13 @@ impl Game {
         let width = width.clone();
         let height = height.clone();
 
-        // gl.clear_color(0.0, 0.0, 0.0, 1.0);
-        // gl.enable(GL::BLEND);
-        // gl.blend_func(GL::ONE, GL::ONE_MINUS_SRC_ALPHA);
-
         let f1_d_location = gl.get_uniform_location(&shader_program, "f1_displacement");
-
         let time_location = gl.get_uniform_location(&shader_program, "u_time");
 
         let mut x_d = 0.0;
         let mut y_d = 0.0;
-
         let mut x2_d = 0.40;
         let mut y2_d = 0.93;
-
-
-
-        // let ext = gl.get_extension("ANGLE_instanced_arrays").unwrap();
-
-        // let x99 = web_sys::AngleInstancedArrays({ x: 39 });
-        // ext.draw_arrays_instanced_angle;
-
-        // let aia = web_sys::AngleInstancedArrays().unwrap();
-
-        web_sys::AngleInstancedArrays::draw_arrays_instanced_angle(&web_sys::AngleInstancedArrays, GL::TRIANGLES, 0, 6, 2);
-
 
 
 
@@ -157,15 +230,21 @@ impl Game {
             timestamp+= 23.0;
             gl.uniform1f(time_location.as_ref(), timestamp as f32);
             gl.uniform4f(f1_d_location.as_ref(), x_d, y_d, x2_d, y2_d);
-            x_d += 0.0003;
+            // x_d += 0.0003;
+            x_d += *dX.borrow();
+            y_d -= *dY.borrow();
+
             y_d += 0.0004;
             x2_d -= 0.0003;
             y2_d -= 0.00023;
 
 
-            // web_sys::AngleInstancedArrays::draw_arrays_instanced_angle(GL::TRIANGLES, 0, 6, 2);
-            // ext.draw_arrays_instanced_angle(GL::TRIANGLES, 0, 6, 2);
+            gl.clear_color(0.5, 0.3, 0.4, 1.0);
+            gl.clear(GL::COLOR_BUFFER_BIT);
+
             gl.draw_arrays_instanced(GL::TRIANGLES, 0, 6, 2);
+
+
             Game::request_animation_frame(f.borrow().as_ref().unwrap());
         }) as Box<dyn FnMut()>));
 
