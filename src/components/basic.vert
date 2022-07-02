@@ -8,14 +8,39 @@ in vec2 a_position;
 
 uniform vec4 f1_displacement;
 
+// uniform vec2 rotations;
+uniform float r1;
 
 
+mat2 r2d(float a) {
+	float c = cos(a), s = sin(a);
+	// https://en.wikipedia.org/wiki/Rotation_matrix
+    // https://www.khronos.org/opengl/wiki/Data_Type_(GLSL)#Matrix_constructors
+    return mat2(
+        c, s, // column 1
+        -s, c // column 2
+    );
+}
 
 
 
 void main() {
 
+    mat2 rmat = r2d(r1);
 
-    gl_Position = vec4(a_position[0] + f1_displacement[(int(gl_InstanceID) * 2) + 0], a_position[1] + f1_displacement[(int(gl_InstanceID) * 2) + 1], 0.0, 1.0);
+    vec2 pos_4 = rmat * a_position;
+
+    vec2 pos_5 = vec2(pos_4[0] + f1_displacement[(int(gl_InstanceID) * 2) + 0], pos_4[1] + f1_displacement[(int(gl_InstanceID) * 2) + 1]); 
+
+    // vec2 pos_2 = vec2(a_position[0] + f1_displacement[(int(gl_InstanceID) * 2) + 0], a_position[1] + f1_displacement[(int(gl_InstanceID) * 2) + 1]);
+
+    
+
+
+
+
+    gl_Position = vec4(pos_5, 0.0, 1.0);
+
+    // gl_Position = vec4(a_position[0] + f1_displacement[(int(gl_InstanceID) * 2) + 0], a_position[1] + f1_displacement[(int(gl_InstanceID) * 2) + 1], 0.0, 1.0);
 
 }

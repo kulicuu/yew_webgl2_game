@@ -1,6 +1,6 @@
 use web_sys::{
     HtmlCanvasElement, WebGl2RenderingContext as GL, 
-    window, AngleInstancedArrays,
+    window, AngleInstancedArrays, KeyboardEvent,
     EventTarget, MouseEvent, WebGlBuffer, WebGlProgram,
     WebGlUniformLocation,
 };
@@ -101,8 +101,39 @@ impl Game {
         let phi = Rc::new(RefCell::new(0.0));
         let dX = Rc::new(RefCell::new(0.0));
         let dY = Rc::new(RefCell::new(0.0));
+
+        let r1 = Rc::new(RefCell::new(0.0));
+        let r2 = Rc::new(RefCell::new(0.0));
+
+        let r1 = r1.clone();
+        let r2 = r2.clone();
+
+
         let canvas_width = Rc::new(RefCell::new(self.canvas_width as f32));
         let canvas_height = Rc::new(RefCell::new(self.canvas_height as f32));
+        let document = web_sys::window().unwrap().document().unwrap();
+        let event_target_2 : EventTarget = document.into();
+
+
+        let r3 = r1.clone();
+
+        {
+            let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
+                // log!("keypress {#:?}", event.key_code());
+                match event.key_code() {
+                    39 => *r1.borrow_mut() += 0.3,
+                    37 => *r1.borrow_mut() -= 0.3,
+                    _ => (),
+                }
+
+            }) as Box<dyn FnMut(KeyboardEvent)>);
+            event_target_2
+                .add_event_listener_with_callback("keydown", keypress_cb.as_ref().unchecked_ref())
+                .unwrap();
+            keypress_cb.forget();
+                
+        }
+
         {
             let drag = drag.clone();
             let mousedown_cb = Closure::wrap(Box::new(move |_event: MouseEvent| {
@@ -123,7 +154,8 @@ impl Game {
                 .add_event_listener_with_callback("mouseup", mouseup_cb.as_ref().unchecked_ref())
                 .unwrap();
             event_target
-                .add_event_listener_with_callback("mouseout", mouseup_cb.as_ref().unchecked_ref())
+                .add_event_listener_with_callback("mouseout", mouseup_cb.as_ref()
+                .unchecked_ref())
                 .unwrap();
             mouseup_cb.forget();
         }
@@ -219,6 +251,10 @@ impl Game {
         let f1_d_location = gl.get_uniform_location(&shader_program, "f1_displacement");
         let time_location = gl.get_uniform_location(&shader_program, "u_time");
 
+        // let rotation_location = gl.get_uniform_location(&shader_program, "rotation");
+        let r1_location = gl.get_uniform_location(&shader_program, "r1");
+
+
         let mut x_d = 0.0;
         let mut y_d = 0.0;
         let mut x2_d = 0.40;
@@ -226,10 +262,13 @@ impl Game {
 
 
 
+
+
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             timestamp+= 23.0;
             gl.uniform1f(time_location.as_ref(), timestamp as f32);
             gl.uniform4f(f1_d_location.as_ref(), x_d, y_d, x2_d, y2_d);
+            gl.uniform1f(r1_location.as_ref(), *r3.borrow());
             // x_d += 0.0003;
             x_d += *dX.borrow();
             y_d -= *dY.borrow();

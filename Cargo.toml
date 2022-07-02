@@ -33,6 +33,7 @@ features = [
   'Event',
   'EventTarget',
   'HtmlCanvasElement',
+  'KeyboardEvent',
   'MouseEventInit',
   'WebGlBuffer',
   'WebGlProgram',
