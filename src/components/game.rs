@@ -40,7 +40,7 @@ impl Component for Game {
         Self {
             gl: None,
             node_ref: NodeRef::default(),
-            canvas_width: 3000,
+            canvas_width: 2000,
             canvas_height: 2000,
         }
     }
@@ -48,7 +48,7 @@ impl Component for Game {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             // <canvas width="{self.canvas_width}" height="{self.canvas_height}" ref={self.node_ref.clone()} />
-            <canvas width=3000 height=2000 ref={self.node_ref.clone()} />
+            <canvas width=2000 height=2000 ref={self.node_ref.clone()} />
         }
     }
 
