@@ -9,6 +9,9 @@ use yew::{html, Component, Context, Html, NodeRef};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
+use cgmath::prelude::*;
+use cgmath::Rad;
+
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -105,6 +108,12 @@ impl Game {
         let r1 = Rc::new(RefCell::new(0.0));
         let r2 = Rc::new(RefCell::new(0.0));
 
+        let dX_2 = dX.clone();
+        let dY_2 = dY.clone();
+
+        // let i1 = Rc::new(RefCell::new(0.0));
+        // let i1 = i1.clone();
+
         let r1 = r1.clone();
         let r2 = r2.clone();
 
@@ -121,8 +130,13 @@ impl Game {
             let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
                 // log!("keypress {#:?}", event.key_code());
                 match event.key_code() {
-                    39 => *r1.borrow_mut() += 0.3,
-                    37 => *r1.borrow_mut() -= 0.3,
+                    39 => *r1.borrow_mut() -= 0.1,
+                    // 38 => *i1.borrow_mut() += 0.5,
+                    38 => {
+                        *dX_2.borrow_mut() += - 0.005 * (Rad::sin(Rad(*r1.borrow())));
+                        *dY_2.borrow_mut() += - 0.005 * (Rad::cos(Rad(*r1.borrow())));
+                    },
+                    37 => *r1.borrow_mut() += 0.1,
                     _ => (),
                 }
 
@@ -251,6 +265,10 @@ impl Game {
         let f1_d_location = gl.get_uniform_location(&shader_program, "f1_displacement");
         let time_location = gl.get_uniform_location(&shader_program, "u_time");
 
+        let f3_d_loc = gl.get_uniform_location(&shader_program, "f3_d");
+
+
+
         // let rotation_location = gl.get_uniform_location(&shader_program, "rotation");
         let r1_location = gl.get_uniform_location(&shader_program, "r1");
 
@@ -266,14 +284,29 @@ impl Game {
 
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             timestamp+= 23.0;
-            gl.uniform1f(time_location.as_ref(), timestamp as f32);
-            gl.uniform4f(f1_d_location.as_ref(), x_d, y_d, x2_d, y2_d);
-            gl.uniform1f(r1_location.as_ref(), *r3.borrow());
-            // x_d += 0.0003;
+            if (x_d < -1.0) {
+                x_d = 1.0 + (x_d + 1.0);
+            }
+            if (x_d > 1.0) {
+                x_d = (x_d - 1.0) - 1.0;
+            }
+            if (y_d < -1.0) {
+                y_d = 1.0 + (y_d + 1.0);
+            }
+            if (y_d > 1.0) {
+                y_d = (y_d - 1.0) - 1.0;
+            }
+
             x_d += *dX.borrow();
             y_d -= *dY.borrow();
+            gl.uniform1f(time_location.as_ref(), timestamp as f32);
+            // gl.uniform4f(f1_d_location.as_ref(), x_d, y_d, x2_d, y2_d);
+            gl.uniform2f(f3_d_loc.as_ref(), x_d, y_d);
+            gl.uniform1f(r1_location.as_ref(), *r3.borrow());
+            // x_d += 0.0003;
 
-            y_d += 0.0004;
+
+            // y_d += 0.0004;
             x2_d -= 0.0003;
             y2_d -= 0.00023;
 
@@ -281,7 +314,13 @@ impl Game {
             gl.clear_color(0.5, 0.3, 0.4, 1.0);
             gl.clear(GL::COLOR_BUFFER_BIT);
 
-            gl.draw_arrays_instanced(GL::TRIANGLES, 0, 6, 2);
+            // gl.draw_arrays_instanced(GL::TRIANGLES, 0, 6, 2);
+
+
+            gl.draw_arrays(GL::TRIANGLES, 0, 6);
+
+            gl.uniform2f(f3_d_loc.as_ref(), x2_d, y2_d);
+            gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
 
             Game::request_animation_frame(f.borrow().as_ref().unwrap());
