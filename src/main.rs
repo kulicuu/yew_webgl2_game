@@ -13,7 +13,8 @@ use yew_router::prelude::*;
 
 use components::chat::Chat;
 use components::login::Login;
-use components::game::Game;
+// use components::game::Game;
+use components::game_202::GameTwo;
 
 
 use wasm_logger;
@@ -25,7 +26,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[derive(Debug, Clone, Copy, PartialEq, Routable)]
 pub enum Route {
     #[at("/")]
-    Game,
+    GameTwo,
     #[at("/login")]
     Login,
     #[at("/chat")]
@@ -63,7 +64,7 @@ fn main() -> Html {
 fn switch(selected_route: &Route) -> Html {
     match selected_route {
 
-        Route::Game => html! {<Game />},
+        Route::GameTwo => html! {<GameTwo />},
         Route::Login => html! {<Login />},
         Route::Chat => html! {<Chat/>},
         Route::NotFound => html! {<h1>{"404"}</h1>},

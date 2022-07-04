@@ -24,7 +24,7 @@ const AMORTIZATION: f32 = 0.95;
 
 pub enum Msg {}
 
-pub struct Game {
+pub struct GameTwo {
     gl: Option<Rc<GL>>,
     node_ref: NodeRef,
     canvas_width: i32,
@@ -36,7 +36,7 @@ struct GameState {
     pos_y: f64,
 }
 
-impl Component for Game {
+impl Component for GameTwo {
     type Message = Msg;
     type Properties = ();
 
@@ -66,7 +66,7 @@ struct Torpedo {
     vy: f32,
 }
 
-impl Game {
+impl GameTwo {
     fn request_animation_frame(f: &Closure<dyn FnMut()>) {
         window().unwrap()
             .request_animation_frame(f.as_ref().unchecked_ref())
@@ -205,14 +205,14 @@ impl Game {
         let torpedo_100_vertex_buffer = gl.create_buffer().unwrap();
         let vehicle_100_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
         gl.bind_buffer(GL::ARRAY_BUFFER, &torpedo_100_js_vertices);
-        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &torpedo_100_js_vertices);
+        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &torpedo_100_js_vertices, GL::STATIC_DRAW);
         let torpedo_100_vertices_position = gl.get_attrib_location(&torpedo_100_shader_program, "a_position") as u32;
-        gl.enable_attrib_pointer_with_i32(torpedo_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
+        gl.vertex_attrib_pointer_with_i32(torpedo_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
         gl.enable_vertex_attrib_array(torpedo_100_vertices_position);
 
         let time_location = gl.get_uniform_location(&shader_program, "u_time");
 
-        let mut timestamp = Instant::now();
+        let mut timestamp = Instant::now().elapsed().as_secs();
 
 
 
@@ -225,7 +225,7 @@ impl Game {
         let alias_rlc = render_loop_closure.clone();
         *alias_rlc.borrow_mut() = Some(Closure::wrap(Box::new(move || {
 
-            let now = Instant::now();
+            let now = Instant::now().elapsed().as_secs();
             let time_delta = now - timestamp;
             timestamp = now;
 
@@ -235,7 +235,7 @@ impl Game {
 
             for torp in torps.borrow_mut().iter() {
                 // log!("torp"); 
-                gl.uniform2f(f3_d_loc.as_ref(), torp.vx * (timestamp * 0.003), torp.vy * (timestamp * 0.01));
+                gl.uniform2f(f3_d_loc.as_ref(), torp.vx * (timestamp as f64 * 0.003), torp.vy * (timestamp as f64 * 0.01));
                 gl.draw_arrays(GL::TRIANGLES, 0, 6);
             }
 
