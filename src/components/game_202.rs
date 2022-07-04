@@ -194,7 +194,7 @@ impl GameTwo {
             let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
                 // log!("keypress {#:?}", event.key_code());
                 match event.key_code() {
-                    39 => v_200.borrow_mut().vifo_theta -= Rad(0.1),
+                    39 => v_200.borrow_mut().vifo_theta -= Rad(0.3),
                     38 => {
                         // add velocity in the direction of vifo theta
                         // then sum the velocities much like with the torpedo firing.
@@ -202,8 +202,8 @@ impl GameTwo {
                         let vniv_scalar = 0.08;
                         let vniv_theta = v_200.borrow().vifo_theta;
 
-                        let vniv_dx = Rad::cos(vniv_theta) * vniv_scalar;
-                        let vniv_dy = Rad::sin(vniv_theta) * vniv_scalar;
+                        let vniv_dy = Rad::cos(vniv_theta) * vniv_scalar;
+                        let vniv_dx = Rad::sin(-vniv_theta) * vniv_scalar;
                         // let vehicle_new_summed_velocity_dx = 
                         let vnsv_dx = vniv_dx + v_200.borrow().velocity_dx;
                         let vnsv_dy = vniv_dy + v_200.borrow().velocity_dy;
@@ -219,7 +219,7 @@ impl GameTwo {
                         v_200.borrow_mut().velocity_scalar = vnsv_scalar;
 
                     },
-                    37 => v_200.borrow_mut().vifo_theta += Rad(0.1),
+                    37 => v_200.borrow_mut().vifo_theta += Rad(0.3),
                     32 => {
                         // log!("shoot torpedo");
                         // let torpedo_own_impulse_charge_velocity_vector_scalar = 
@@ -284,44 +284,74 @@ impl GameTwo {
         gl.vertex_attrib_pointer_with_i32(vehicle_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
         gl.enable_vertex_attrib_array(vehicle_100_vertices_position);
 
-        let torpedo_100_vertex_buffer = gl.create_buffer().unwrap();
-        let torpedo_100_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
-        gl.bind_buffer(GL::ARRAY_BUFFER, Some(&torpedo_100_vertex_buffer));
-        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &torpedo_100_js_vertices, GL::STATIC_DRAW);
-        let torpedo_100_vertices_position = gl.get_attrib_location(&torpedo_100_shader_program, "a_position") as u32;
-        gl.vertex_attrib_pointer_with_i32(torpedo_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(torpedo_100_vertices_position);
+        // let torpedo_100_vertex_buffer = gl.create_buffer().unwrap();
+        // let torpedo_100_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
+        // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&torpedo_100_vertex_buffer));
+        // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &torpedo_100_js_vertices, GL::STATIC_DRAW);
+        // let torpedo_100_vertices_position = gl.get_attrib_location(&torpedo_100_shader_program, "a_position") as u32;
+        // gl.vertex_attrib_pointer_with_i32(torpedo_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
+        // gl.enable_vertex_attrib_array(torpedo_100_vertices_position);
 
         let time_location = gl.get_uniform_location(&vehicle_100_shader_program, "u_time");
 
-        
-
-        let mut timestamp = Instant::now().elapsed().as_secs();
 
         
+        // let r1_location = gl.get_uniform_location(&shader_program, "r1");
+
+        let v_200_pos_deltas_loc = gl.get_uniform_location(&vehicle_100_shader_program, "pos_deltas");
+
+        let v_200_vifo_theta_loc = gl.get_uniform_location(&vehicle_100_shader_program, "vifo_theta");
+
+        let timestamp = Instant::now();
+        let mut cursor = timestamp.elapsed().as_millis();
+        log!("cursor", cursor);
+
+
         let gl = gl.clone();
         let render_loop_closure = Rc::new(RefCell::new(None));
         let alias_rlc = render_loop_closure.clone();
         *alias_rlc.borrow_mut() = Some(Closure::wrap(Box::new(move || {
 
-            let now = Instant::now().elapsed().as_secs();
-            let time_delta = now - timestamp;
-            timestamp = now;
+            let now = timestamp.elapsed().as_millis();
+            let time_delta = now - cursor;
+            cursor = now;
+
+            let delta_scalar = (time_delta as f32) * 0.001; 
 
             gl.use_program(Some(&vehicle_100_shader_program));
-            gl.clear_color(0.18, 0.13, 0.12, 1.0);
+            gl.clear_color(0.99, 0.99, 0.99, 1.0);
             gl.clear(GL::COLOR_BUFFER_BIT);
 
             let old_pos_dx = alias_v_200.borrow().position_dx;
-            let additional_dx = alias_v_200.borrow().velocity_dx * (time_delta as f32);
-            alias_v_200.borrow_mut().position_dx = old_pos_dx + additional_dx;
+            let additional_dx = alias_v_200.borrow().velocity_dx * (delta_scalar as f32);
+            let mut new_pos_dx = old_pos_dx + additional_dx;
+            if new_pos_dx < -1.0 {
+                new_pos_dx = new_pos_dx + 2.0;
+            }
+            if new_pos_dx > 1.0 {
+                new_pos_dx = new_pos_dx - 2.0;
+            }
+            alias_v_200.borrow_mut().position_dx = new_pos_dx;
 
             let old_pos_dy = alias_v_200.borrow().position_dy;
-            let additional_dy = alias_v_200.borrow().velocity_dy * (time_delta as f32);
-            alias_v_200.borrow_mut().position_dy = old_pos_dy + additional_dy;
+            let additional_dy = alias_v_200.borrow().velocity_dy * (delta_scalar as f32);
+            let mut new_pos_dy = old_pos_dy + additional_dy;
+            if new_pos_dy < -1.0 {
+                new_pos_dy += 2.0;
+            }
+            if new_pos_dy > 1.0 {
+                new_pos_dy -= 2.0;
+            }
+            alias_v_200.borrow_mut().position_dy = new_pos_dy; 
 
-            // uniforms would be just pos_dx, pos_dy, and vifo_theta.
+            gl.use_program(Some(&vehicle_100_shader_program));
 
+            gl.uniform1f(time_location.as_ref(), 0.4 as f32);
+            gl.uniform2f(v_200_pos_deltas_loc.as_ref(), new_pos_dx, new_pos_dy);
+
+            gl.uniform1f(v_200_vifo_theta_loc.as_ref(), alias_v_200.borrow().vifo_theta.0);
+
+            gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
 
 
