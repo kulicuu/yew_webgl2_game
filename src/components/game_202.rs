@@ -118,16 +118,17 @@ impl GameTwo {
         let et_keys : EventTarget = document.into(); 
 
         let mut v_200 = Rc::new(RefCell::new(Vehicle_100 {
-                dx: 0.3,
-                dy: 0.3,
+                position_dx: 0.3,
+                position_dy: 0.3,
                 vifo_theta: 0.3,
                 velocity_theta: 0.3,
-                velocity: 0.0,
-                velocity_x: 0.0,
-                velocity_y: 0.0,
+                velocity_scalar: 0.0,
+                velocity_dx: 0.0,
+                velocity_dy: 0.0,
         }));
 
-        let t_100_vec : Rc<RefCell<Vec<Vehicle_100>>> = Rc::new(RefCell::new(vec![]));
+
+        let torpedos_vec : Rc<RefCell<Vec<Vehicle_100>>> = Rc::new(RefCell::new(vec![]));
     
         {
             let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
@@ -136,8 +137,36 @@ impl GameTwo {
                     39 => v_200.borrow_mut().vifo_theta -= 0.1,
                     38 => {
 
-                        let impulse_vector_theta = v_200.borrow_mut().vifo_theta;
-                        let impulse_scalar = v_200.borrow_mut().velocity + 0.005;
+                        // let torpedo_own_impulse_charge_velocity_vector_scalar = 
+                        let ticv_scalar = 0.0054;
+                        // Inherit own charge impulse velocity vector theta from vehicle.
+                        // let torpedo_internal_charge_vifo_theta = v_200.borrow().vifo_theta; 
+                        let ticv_theta = v_200.borrow().vifo_theta;
+                        // this is only true for the initial internal charge.
+                        // Torpedos will not be flying where they are pointed in general.
+                        // let torpedo_own_impulse_velocity_dx =
+                        let ticv_dx = cos(ticv_theta) / ticv_scalar;
+                        let ticv_dy = sin(ticv_theta) / ticv_scalar;
+                        // let torpedo_summed_velocity_dx =
+                        let tsv_dx = ticv_dx + v_200.borrow().velocity_dx;
+                        let tsv_dy = ticv_dy + v_200.borrow().velocity_dy;
+                        // We need the angle theta whose sin is related to tsv_dy and whose cosine is related
+                        // to tsv_dx.
+                        // Also need to derive the velocity scalar from the same operations.
+                
+                        
+                        let mut torpedo = Rc::new(RefCell::new(Vehicle_100 {
+                            position_dx:  v_200.borrow().position_dx,
+                            position_dy: v_200.borrow().position_dy,
+                            vifo_theta: torpedo_vifo_theta,
+                            velocity_theta: torpedo_vifo_theta, // happens
+                            velocity_scalar:   sin(v_200.borrow().vifo_theta) / v_200,
+                            velocity_dx: 0.0,
+                            velocity_dy: 0.0,
+                        }));
+
+                        // Does this whole structure need to be double wtra
+
 
 
 
@@ -225,7 +254,6 @@ impl GameTwo {
             gl.clear_color(0.18, 0.13, 0.12, 1.0);
             gl.clear(GL::COLOR_BUFFER_BIT);
 
-
             GameTwo::request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
         }) as Box<dyn FnMut()>));
 
@@ -233,21 +261,17 @@ impl GameTwo {
     }
 }
 
-struct Velocity {
-    theta: f32,
-    velocity: f32,
-}
-
 struct Vehicle_100 {
-    dx: f32, // raw displacement in x, y
-    dy: f32,
+    position_dx: f32, // raw displacement in x, y
+    position_dy: f32,
     // vehicle_inertial_frame_orientation_theta: f32,
     vifo_theta: f32,
     // polar description
     velocity_theta: f32,
-    velocity: f32,
+    velocity_scalar: f32,
     // redundant alternate description of velocity, cartesian
-    velocity_x: f32,
-    velocity_y: f32,
+    velocity_dx: f32,
+    velocity_dy: f32,
     
 }
+
