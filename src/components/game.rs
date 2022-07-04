@@ -68,6 +68,13 @@ impl Component for Game {
     }
 }
 
+
+struct Torpedo {
+    r: f32,
+    vx: f32,
+    vy: f32,
+}
+
 impl Game {
 
     fn request_animation_frame(f: &Closure<dyn FnMut()>) {
@@ -79,7 +86,7 @@ impl Game {
     fn render_gl(&mut self, _link: &Scope<Self>) {
         let canvas = self.node_ref.cast::<HtmlCanvasElement>().unwrap();
         let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().unwrap();
-        // let canvas = Rc::new(canvas);
+
         let gl: GL = canvas
             .get_context("webgl2")
             .unwrap()
@@ -89,15 +96,8 @@ impl Game {
         
         let gl = Some(Rc::new(gl));
         let gl = gl.as_ref().expect("GL Context not initialized!");
-        // let canvas = Rc::new(canvas);
-        // let document = web_sys::window().unwrap().document().unwrap();
-        // let canvas = document.get_element_by_id("canvas").unwrap();
-        // let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().unwrap();
 
-        // let canvas = canvas.clone();
-        // let canvas = canvas.clone();
         let event_target: EventTarget = canvas.into();
-
 
         let drag = Rc::new(RefCell::new(false));
         let theta = Rc::new(RefCell::new(0.0));
@@ -111,32 +111,44 @@ impl Game {
         let dX_2 = dX.clone();
         let dY_2 = dY.clone();
 
-        // let i1 = Rc::new(RefCell::new(0.0));
-        // let i1 = i1.clone();
-
         let r1 = r1.clone();
         let r2 = r2.clone();
-
 
         let canvas_width = Rc::new(RefCell::new(self.canvas_width as f32));
         let canvas_height = Rc::new(RefCell::new(self.canvas_height as f32));
         let document = web_sys::window().unwrap().document().unwrap();
         let event_target_2 : EventTarget = document.into();
 
-
         let r3 = r1.clone();
+
+
+        let torps : Rc<RefCell<Vec<Torpedo>>> = Rc::new(RefCell::new(vec![]));
+        // let torps = Rc::new(RefCell::new(0.0));
+
+        let torps_2 = torps.clone();
 
         {
             let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
                 // log!("keypress {#:?}", event.key_code());
                 match event.key_code() {
                     39 => *r1.borrow_mut() -= 0.1,
-                    // 38 => *i1.borrow_mut() += 0.5,
                     38 => {
                         *dX_2.borrow_mut() += - 0.005 * (Rad::sin(Rad(*r1.borrow())));
                         *dY_2.borrow_mut() += - 0.005 * (Rad::cos(Rad(*r1.borrow())));
                     },
                     37 => *r1.borrow_mut() += 0.1,
+                    32 => {
+                        // log!("shoot torpedo");
+                        let torp = Torpedo {
+                            r: *r1.borrow(),
+                            // vx: *dX_2.borrow() + (- 0.02 * (Rad::sin(Rad(*r1.borrow())))),
+                            // vy: *dY_2.borrow() + (- 0.02 * (Rad::cos(Rad(*r1.borrow())))),
+                            vx: *dX_2.borrow(),
+                            vy: *dY_2.borrow(),
+                        };
+                        torps_2.borrow_mut().push(torp);
+                        // torps_2.borrow_mut().push(torp);
+                    }
                     _ => (),
                 }
 
@@ -147,6 +159,8 @@ impl Game {
             keypress_cb.forget();
                 
         }
+
+        
 
         {
             let drag = drag.clone();
@@ -181,6 +195,7 @@ impl Game {
             let canvas_height = canvas_height.clone();
             let dX = dX.clone();
             let dY = dY.clone();
+            let torps = torps.clone();
             let drag = drag.clone();
             let mousemove_cb = Closure::wrap(Box::new(move |event: MouseEvent| {
                 if *drag.borrow() {
@@ -198,12 +213,6 @@ impl Game {
             mousemove_cb.forget();
         }
 
-
-
-
-
-
-
         let vert_code = include_str!("./basic.vert");
         let frag_code = include_str!("./basic.frag");
 
@@ -212,7 +221,7 @@ impl Game {
         gl.compile_shader(&vert_shader);
 
         let ans = gl.get_shader_info_log(&vert_shader);
-        log!(ans);
+        log!("Shader info log: ", ans);
 
         let frag_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
         gl.shader_source(&frag_shader, frag_code);
@@ -280,7 +289,8 @@ impl Game {
 
 
 
-
+        let torps = torps.clone();
+        
 
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             timestamp+= 23.0;
@@ -297,11 +307,13 @@ impl Game {
                 y_d = (y_d - 1.0) - 1.0;
             }
 
+
+            
             x_d += *dX.borrow();
             y_d -= *dY.borrow();
             gl.uniform1f(time_location.as_ref(), timestamp as f32);
             // gl.uniform4f(f1_d_location.as_ref(), x_d, y_d, x2_d, y2_d);
-            gl.uniform2f(f3_d_loc.as_ref(), x_d, y_d);
+            
             gl.uniform1f(r1_location.as_ref(), *r3.borrow());
             // x_d += 0.0003;
 
@@ -311,12 +323,33 @@ impl Game {
             y2_d -= 0.00023;
 
 
-            gl.clear_color(0.5, 0.3, 0.4, 1.0);
+            gl.clear_color(0.18, 0.13, 0.12, 1.0);
             gl.clear(GL::COLOR_BUFFER_BIT);
 
             // gl.draw_arrays_instanced(GL::TRIANGLES, 0, 6, 2);
 
 
+            // log!("torps length", torps.borrow().len()); 
+
+
+            // let ts2 = *torps.borrow();
+            
+            // torps.borrow().iter().map(|_| {
+            //     log!("torp in iter");
+            // });
+
+            for torp in torps.borrow_mut().iter() {
+                // log!("torp"); 
+                gl.uniform2f(f3_d_loc.as_ref(), torp.vx * (timestamp * 0.003), torp.vy * (timestamp * 0.01));
+                gl.draw_arrays(GL::TRIANGLES, 0, 6);
+            }
+
+
+            // torps.borrow().iter.enumerate() {
+            //     log!("torp!");
+
+            // }
+            gl.uniform2f(f3_d_loc.as_ref(), x_d, y_d);
             gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
             gl.uniform2f(f3_d_loc.as_ref(), x2_d, y2_d);
