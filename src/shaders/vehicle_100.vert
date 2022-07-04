@@ -2,45 +2,33 @@
 
 precision mediump float;
 
-in vec2 a_position;
-
-
-
-// uniform vec4 f1_displacement;
-
-uniform vec2 f3_d;
-
-// uniform vec2 rotations;
-uniform float r1;
+in vec2 a_position; // model positioned at origin.
+uniform vec2 pos_deltas;
+uniform float vifo_theta;
 
 
 mat2 r2d(float a) {
 	float c = cos(a), s = sin(a);
     return mat2(
         c, s,
-        -s, c,
+        -s, c
     );
 }
 
-
+mat3 rotate_translate(float theta, float dx, float dy) {
+    float c = con(theta), s = sin(theta);
+    return mat3(
+        c, -s, dx,
+        s, c, dy,
+        0, 0, 1
+    );
+}
 
 void main() {
 
-    mat2 rmat = r2d(r1);
+    mat3 transform = rotate_translate(vifo_theta, pos_deltas[0], pos_deltas[1]);
 
-    // vec2 pos_4 = rmat * a_position;
-
-    // vec2 pos_5 = vec2(pos_4[0] + f1_displacement[(int(gl_InstanceID) * 2) + 0], pos_4[1] + f1_displacement[(int(gl_InstanceID) * 2) + 1]); 
-
-    // vec2 pos_2 = vec2(a_position[0] + f1_displacement[(int(gl_InstanceID) * 2) + 0], a_position[1] + f1_displacement[(int(gl_InstanceID) * 2) + 1]);
-
-    vec2 pos_2 = rmat * a_position;
-
-    vec2 pos_3 = vec2(pos_2[0] + f3_d[0], pos_2[1] + f3_d[1]);
-
-    gl_Position = vec4(pos_3, 0.0, 1.0);
-
-
-    // gl_Position = vec4(a_position[0] + f1_displacement[(int(gl_InstanceID) * 2) + 0], a_position[1] + f1_displacement[(int(gl_InstanceID) * 2) + 1], 0.0, 1.0);
+    vec3 v3 = transform * vec3(a_position, 1.0);
+    gl_Position = vec4(v3, 1.0);
 
 }

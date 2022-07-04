@@ -1,11 +1,8 @@
 #version 300 es
 
-presision mediump float;
+precision mediump float;
 
 in vec2 a_position;
-
-
-
 
 void main() {
 

@@ -24,6 +24,10 @@ use std::f32::consts::PI;
 
 const AMORTIZATION: f32 = 0.95;
 
+// https://github.com/rust-lang/rust/issues/48564#issuecomment-698712971
+// std::time invocation causes panic.  There is a comment linked above which solves this
+// with the polyfillish stuff below.
+
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Instant(std::time::Instant);
@@ -181,6 +185,9 @@ impl GameTwo {
                 velocity_dy: 0.0,
         }));
 
+        let v_200 = v_200.clone();
+        let alias_v_200 = v_200.clone();
+
         let torpedos_vec : Rc<RefCell<Vec<Vehicle_100>>> = Rc::new(RefCell::new(vec![]));
     
         {
@@ -287,14 +294,11 @@ impl GameTwo {
 
         let time_location = gl.get_uniform_location(&vehicle_100_shader_program, "u_time");
 
+        
+
         let mut timestamp = Instant::now().elapsed().as_secs();
 
-
-
-
-
-
-
+        
         let gl = gl.clone();
         let render_loop_closure = Rc::new(RefCell::new(None));
         let alias_rlc = render_loop_closure.clone();
@@ -307,6 +311,21 @@ impl GameTwo {
             gl.use_program(Some(&vehicle_100_shader_program));
             gl.clear_color(0.18, 0.13, 0.12, 1.0);
             gl.clear(GL::COLOR_BUFFER_BIT);
+
+            let old_pos_dx = alias_v_200.borrow().position_dx;
+            let additional_dx = alias_v_200.borrow().velocity_dx * (time_delta as f32);
+            alias_v_200.borrow_mut().position_dx = old_pos_dx + additional_dx;
+
+            let old_pos_dy = alias_v_200.borrow().position_dy;
+            let additional_dy = alias_v_200.borrow().velocity_dy * (time_delta as f32);
+            alias_v_200.borrow_mut().position_dy = old_pos_dy + additional_dy;
+
+            // uniforms would be just pos_dx, pos_dy, and vifo_theta.
+
+
+
+
+
 
             GameTwo::request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
         }) as Box<dyn FnMut()>));
