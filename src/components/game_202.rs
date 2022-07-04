@@ -127,17 +127,38 @@ impl Game {
         // why not just use the document exposed by web-sys?
         let document = web_sys::window().unwrap().document().unwrap();
 
+        let v_200 = Vehicle_100 {
+            dx: 0.3,
+            dy: 0.3,
+            vifo_theta: 0.3,
+            velocity_theta: 0.3,
+            velocity: 0.0,
+            velocity_x: 0.0,
+            velocity_y: 0.0,
+        };
+
+        let t_100_vec : Rc<Refcell<Vec<Vehicle_100>>> = vec![];
+
         {
             let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
                 // log!("keypress {#:?}", event.key_code());
                 match event.key_code() {
-                    39 => *r1.borrow_mut() -= 0.1,
+                    39 => *v_200.vifo_theta.borrow_mut() -= 0.1,
                     38 => {
                         // Don't directly mutate displacement, only adjust velocity 
                     },
-                    37 => *r1.borrow_mut() += 0.1,
+                    37 => *v_200.vifo_theta.borrow_mut() += 0.1,
                     32 => {
                         // log!("shoot torpedo");
+
+                        let { 
+                            v_dx, v_dy, v_vifo_theta, vehicle_velocity_theta, vehicle_velocity, 
+                        } = *v_200.borrow();;
+
+                        let torpedo = Vehicle_100 {
+                            dx
+                        }
+                        t_100_vec.borrow_mut().push();
                     }
                     _ => (),
                 }
@@ -193,22 +214,9 @@ impl Game {
 
         let mut timestamp = Instant::now();
 
-        let mut vehicle_100_i_1 = Vehicle_100 {
-            dx: 0.3,
-            dy: 0.3,
-            theta: 1.2,
-            v: 0.0,
-        }
 
-        // velocity is a vector, iirc.
-        // An ordered pair is a complete description.
-        // dx, dy
-        // orientation theta is different from velocity theta
-        // velocity as an ordered pair (vx, vy)
-        // velocity as an ordered enum, pair velocity theta, velocity_
-        
-        // velocity_theta : f32,
-        // orientation_theta : f32,
+
+
 
 
 
@@ -221,7 +229,6 @@ impl Game {
             let time_delta = now - timestamp;
             timestamp = now;
 
-            
             gl.use_program(Some(&vehicle_100_shader_program));
             gl.clear_color(0.18, 0.13, 0.12, 1.0);
             gl.clear(GL::COLOR_BUFFER_BIT);
@@ -241,12 +248,12 @@ impl Game {
 }
 
 
-struct Vehicle_100 {
-    dx: f32,  // displacement from origin
-    dy: f32,
-    theta: f32, // orientation
-    v: f32,  // velocity. Not sure but it may be more performant to maintain separate vx and vy.
-}
+// struct Vehicle_100 {
+//     dx: f32,  // displacement from origin
+//     dy: f32,
+//     theta: f32, // orientation
+//     v: f32,  // velocity. Not sure but it may be more performant to maintain separate vx and vy.
+// }
 
 struct Vehicle_100 {
     dx: f32, // raw displacement in x, y
