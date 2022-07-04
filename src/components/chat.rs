@@ -6,8 +6,6 @@ use yew_agent::{Bridge, Bridged};
 
 use crate::services::event_bus::EventBus;
 use crate::{services::websocket::WebsocketService, User};
-use crate::components::game::Game;
-
 
 pub enum Msg {
     HandleMsg(String),
@@ -181,7 +179,6 @@ impl Component for Chat {
                         </button>
                     </div>
                 </div>
-                <Game />
             </div>
         }
     }

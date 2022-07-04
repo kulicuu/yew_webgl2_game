@@ -31,11 +31,6 @@ pub struct GameTwo {
     canvas_height: i32,
 }
 
-struct GameState {
-    pos_x: f64,
-    pos_y: f64,
-}
-
 impl Component for GameTwo {
     type Message = Msg;
     type Properties = ();
@@ -60,12 +55,6 @@ impl Component for GameTwo {
     }
 }
 
-struct Torpedo {
-    r: f32,
-    vx: f32,
-    vy: f32,
-}
-
 impl GameTwo {
     fn request_animation_frame(f: &Closure<dyn FnMut()>) {
         window().unwrap()
@@ -84,15 +73,15 @@ impl GameTwo {
             .dyn_into::<GL>()
             .unwrap();
         
-        let gl = Some(Rc::new(gl)).as_ref().expect("Error: GL Context not initialized.");
+        let gl = Some(Rc::new(gl));
+        let gl = gl.as_ref().expect("Error: GL Context not initialized.");
 
-        let vehicle_100_vert_code = include_str("../shaders/vehicle_100.vert");
-        let torpedo_100_vert_code = include_str("../shaders/torpedo_100.vert");
+        let vehicle_100_vert_code = include_str!("../shaders/vehicle_100.vert");
+        let torpedo_100_vert_code = include_str!("../shaders/torpedo_100.vert");
 
         let vehicle_100_vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
         let torpedo_100_vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
         
-
         gl.shader_source(&vehicle_100_vert_shader, vehicle_100_vert_code);
         gl.shader_source(&torpedo_100_vert_shader, torpedo_100_vert_code);
 
@@ -113,21 +102,22 @@ impl GameTwo {
 
         let vehicle_100_shader_program = gl.create_program().unwrap();
         gl.attach_shader(&vehicle_100_shader_program, &vehicle_100_vert_shader);
-        gl.attach_shader(&shader_program, &frag_shader);
+        gl.attach_shader(&vehicle_100_shader_program, &frag_shader);
 
         let torpedo_100_shader_program = gl.create_program().unwrap();
         gl.attach_shader(&torpedo_100_shader_program, &torpedo_100_vert_shader);
+        gl.attach_shader(&torpedo_100_shader_program, &frag_shader);
 
         gl.link_program(&vehicle_100_shader_program);
         gl.link_program(&torpedo_100_shader_program);
-        
-        let et_mouse: EventTarget = canvas.into();
-        let et_keys : EventTarget = document.into(); 
 
         // why not just use the document exposed by web-sys?
         let document = web_sys::window().unwrap().document().unwrap();
 
-        let v_200 = Vehicle_100 {
+        // let et_mouse: EventTarget = canvas.into();
+        let et_keys : EventTarget = document.into(); 
+
+        let mut v_200 = Vehicle_100 {
             dx: 0.3,
             dy: 0.3,
             vifo_theta: 0.3,
@@ -137,49 +127,45 @@ impl GameTwo {
             velocity_y: 0.0,
         };
 
-        let t_100_vec : Rc<Refcell<Vec<Vehicle_100>>> = vec![];
+        let t_100_vec : Rc<RefCell<Vec<Vehicle_100>>> = Rc::new(RefCell::new(vec![]));
 
         {
             let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
                 // log!("keypress {#:?}", event.key_code());
                 match event.key_code() {
-                    39 => *v_200.vifo_theta.borrow_mut() -= 0.1,
+                    39 => v_200.vifo_theta -= 0.1,
                     38 => {
                         // Don't directly mutate displacement, only adjust velocity 
                     },
-                    37 => *v_200.vifo_theta.borrow_mut() += 0.1,
+                    37 => v_200.vifo_theta += 0.1,
                     32 => {
                         // log!("shoot torpedo");
 
-                        let { 
-                            v_dx, v_dy, v_vifo_theta, vehicle_velocity_theta, vehicle_velocity, 
-                        } = *v_200.borrow();;
+                        // let { 
+                        //     v_dx, v_dy, v_vifo_theta, vehicle_velocity_theta, vehicle_velocity, 
+                        // } = *v_200.borrow();;
 
-                        let torpedo = Vehicle_100 {
-                            dx
-                        }
-                        t_100_vec.borrow_mut().push();
+                        // Looking for a struct comprehension, may cost to keep borrowing (?)
+                        // let vehicle_dx = v_200.borrow().dx;
+                        // let vehicle_dy = v_200.borrow().dy;
+                        // let vehicle_vifo_theta = v_200.borrow().vifo_theta;
+                        // let vehicle_velocity_theta = v_200.borrow().velocity_theta;
+
+
+                        // let torpedo = Vehicle_100 {
+                        //     dx
+                        // }
+                        // t_100_vec.borrow_mut().push();
                     }
                     _ => (),
                 }
 
             }) as Box<dyn FnMut(KeyboardEvent)>);
-            event_target_2
+            et_keys
                 .add_event_listener_with_callback("keydown", keypress_cb.as_ref().unchecked_ref())
                 .unwrap();
             keypress_cb.forget();
 
-        }
-
-        {
-            let drag = drag.clone();
-            let mousedown_cb = Closure::wrap(Box::new(move |_event: MouseEvent| {
-                *drag.borrow_mut() = true;
-            }) as Box<dyn FnMut(MouseEvent)>);
-            event_target
-                .add_event_listener_with_callback("mousedown", mousedown_cb.as_ref().unchecked_ref())
-                .unwrap();
-            mousedown_cb.forget();
         }
 
         let vehicle_100_vertices: Vec<f32> = vec![
@@ -197,20 +183,20 @@ impl GameTwo {
         let vehicle_100_vertex_buffer = gl.create_buffer().unwrap();
         let vehicle_100_js_vertices = js_sys::Float32Array::from(vehicle_100_vertices.as_slice());
         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vehicle_100_vertex_buffer));
-        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vehicle_100_js_vertices);
+        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vehicle_100_js_vertices, GL::STATIC_DRAW);
         let vehicle_100_vertices_position = gl.get_attrib_location(&vehicle_100_shader_program, "a_position") as u32;
         gl.vertex_attrib_pointer_with_i32(vehicle_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
         gl.enable_vertex_attrib_array(vehicle_100_vertices_position);
 
         let torpedo_100_vertex_buffer = gl.create_buffer().unwrap();
-        let vehicle_100_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
-        gl.bind_buffer(GL::ARRAY_BUFFER, &torpedo_100_js_vertices);
+        let torpedo_100_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
+        gl.bind_buffer(GL::ARRAY_BUFFER, Some(&torpedo_100_vertex_buffer));
         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &torpedo_100_js_vertices, GL::STATIC_DRAW);
         let torpedo_100_vertices_position = gl.get_attrib_location(&torpedo_100_shader_program, "a_position") as u32;
         gl.vertex_attrib_pointer_with_i32(torpedo_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
         gl.enable_vertex_attrib_array(torpedo_100_vertices_position);
 
-        let time_location = gl.get_uniform_location(&shader_program, "u_time");
+        let time_location = gl.get_uniform_location(&vehicle_100_shader_program, "u_time");
 
         let mut timestamp = Instant::now().elapsed().as_secs();
 
@@ -233,27 +219,13 @@ impl GameTwo {
             gl.clear_color(0.18, 0.13, 0.12, 1.0);
             gl.clear(GL::COLOR_BUFFER_BIT);
 
-            for torp in torps.borrow_mut().iter() {
-                // log!("torp"); 
-                gl.uniform2f(f3_d_loc.as_ref(), torp.vx * (timestamp as f64 * 0.003), torp.vy * (timestamp as f64 * 0.01));
-                gl.draw_arrays(GL::TRIANGLES, 0, 6);
-            }
 
-
-            Game::request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
+            GameTwo::request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
         }) as Box<dyn FnMut()>));
 
-        Game::request_animation_frame(g.borrow().as_ref().unwrap());
+        GameTwo::request_animation_frame(alias_rlc.borrow().as_ref().unwrap());
     }
 }
-
-
-// struct Vehicle_100 {
-//     dx: f32,  // displacement from origin
-//     dy: f32,
-//     theta: f32, // orientation
-//     v: f32,  // velocity. Not sure but it may be more performant to maintain separate vx and vy.
-// }
 
 struct Vehicle_100 {
     dx: f32, // raw displacement in x, y
