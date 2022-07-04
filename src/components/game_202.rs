@@ -136,7 +136,6 @@ impl GameTwo {
                 match event.key_code() {
                     39 => v_200.borrow_mut().vifo_theta -= 0.1,
                     38 => {
-
                         // let torpedo_own_impulse_charge_velocity_vector_scalar = 
                         let ticv_scalar = 0.0054;
                         // Inherit own charge impulse velocity vector theta from vehicle.
@@ -150,26 +149,24 @@ impl GameTwo {
                         // let torpedo_summed_velocity_dx =
                         let tsv_dx = ticv_dx + v_200.borrow().velocity_dx;
                         let tsv_dy = ticv_dy + v_200.borrow().velocity_dy;
-                        // We need the angle theta whose sin is related to tsv_dy and whose cosine is related
-                        // to tsv_dx.
-                        // Also need to derive the velocity scalar from the same operations.
-                
-                        
+
+                        // let torpedo_summed_velocity_theta = Rad::atan(tsv_dy / tsv_dx);
+                        let tsv_theta = Rad::atan(tsv_dy / tsv_dx);
+                        let tsv_scalar = tsv_dx / Rad::cos(tsv_theta);
+                        let tsv_scalar_2 = tsv_dy / Rad::sin(tsv_theta);
+                        // assert tsv_scalar == tsv_scalar_2;
+
                         let mut torpedo = Rc::new(RefCell::new(Vehicle_100 {
                             position_dx:  v_200.borrow().position_dx,
                             position_dy: v_200.borrow().position_dy,
                             vifo_theta: torpedo_vifo_theta,
-                            velocity_theta: torpedo_vifo_theta, // happens
-                            velocity_scalar:   sin(v_200.borrow().vifo_theta) / v_200,
-                            velocity_dx: 0.0,
-                            velocity_dy: 0.0,
+                            velocity_theta: tsv_theta,
+                            velocity_scalar: tsv_scalar,
+                            velocity_dx: tsv_dx,
+                            velocity_dy: tsv_dy,
                         }));
 
-                        // Does this whole structure need to be double wtra
-
-
-
-
+                        torpedos_vec.borrow_mut().push(torpedo);
 
 
 
