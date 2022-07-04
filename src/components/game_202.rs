@@ -120,8 +120,8 @@ impl GameTwo {
         let mut v_200 = Rc::new(RefCell::new(Vehicle_100 {
                 position_dx: 0.3,
                 position_dy: 0.3,
-                vifo_theta: 0.3,
-                velocity_theta: 0.3,
+                vifo_theta: Rad(0.3),
+                velocity_theta: Rad(0.3),
                 velocity_scalar: 0.0,
                 velocity_dx: 0.0,
                 velocity_dy: 0.0,
@@ -134,7 +134,7 @@ impl GameTwo {
             let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
                 // log!("keypress {#:?}", event.key_code());
                 match event.key_code() {
-                    39 => v_200.borrow_mut().vifo_theta -= 0.1,
+                    39 => v_200.borrow_mut().vifo_theta -= Rad(0.1),
                     38 => {
                         // add velocity in the direction of vifo theta
                         // then sum the velocities much like with the torpedo firing.
@@ -149,16 +149,17 @@ impl GameTwo {
                         let vnsv_dy = vniv_dy + v_200.borrow().velocity_dy;
 
                         let vnsv_theta = Rad::atan(vnsv_dy / vnsv_dx);
+                        // let vnsv_scalar = (vnsv_dx as f32) / (Rad::cos(Rad(vnsv_theta)) as f32);
                         let vnsv_scalar = vnsv_dx / Rad::cos(vnsv_theta);
                         let vnsv_scalar_2 = vnsv_dy / Rad::sin(vnsv_theta);
-                        // assert vnvs_scalar == vnsv_scalar_2;
-                        vehicle_200.borrow_mut().velocity_dx = vnsv_dx;
-                        vehicle_200.borrow_mut().velocity_dy = vnsv_dy;
-                        vehicle_200.borrow_mut().velocity_theta = vnsv_theta;
-                        vehicle_200.borrow_mut().velocity_scalar = vnsv_scalar;
+                        // // assert vnvs_scalar == vnsv_scalar_2;
+                        v_200.borrow_mut().velocity_dx = vnsv_dx;
+                        v_200.borrow_mut().velocity_dy = vnsv_dy;
+                        v_200.borrow_mut().velocity_theta = vnsv_theta.into();
+                        v_200.borrow_mut().velocity_scalar = vnsv_scalar;
 
                     },
-                    37 => v_200.borrow_mut().vifo_theta += 0.1,
+                    37 => v_200.borrow_mut().vifo_theta += Rad(0.1),
                     32 => {
                         // log!("shoot torpedo");
                         // let torpedo_own_impulse_charge_velocity_vector_scalar = 
@@ -169,8 +170,8 @@ impl GameTwo {
                         // this is only true for the initial internal charge.
                         // Torpedos will not be flying where they are pointed in general.
                         // let torpedo_own_impulse_velocity_dx =
-                        let ticv_dx = cos(ticv_theta) * ticv_scalar;
-                        let ticv_dy = sin(ticv_theta) * ticv_scalar;
+                        let ticv_dx = Rad::cos(ticv_theta) * ticv_scalar;
+                        let ticv_dy = Rad::sin(ticv_theta) * ticv_scalar;
                         // let torpedo_summed_velocity_dx =
                         let tsv_dx = ticv_dx + v_200.borrow().velocity_dx;
                         let tsv_dy = ticv_dy + v_200.borrow().velocity_dy;
@@ -181,22 +182,18 @@ impl GameTwo {
                         let tsv_scalar_2 = tsv_dy / Rad::sin(tsv_theta);
                         // assert tsv_scalar == tsv_scalar_2;
 
-                        let mut torpedo = Rc::new(RefCell::new(Vehicle_100 {
+                        let mut torpedo = Vehicle_100 {
                             position_dx:  v_200.borrow().position_dx,
                             position_dy: v_200.borrow().position_dy,
-                            vifo_theta: torpedo_vifo_theta,
+                            vifo_theta: ticv_theta,
                             velocity_theta: tsv_theta,
                             velocity_scalar: tsv_scalar,
                             velocity_dx: tsv_dx,
                             velocity_dy: tsv_dy,
-                        }));
+                        };
 
-                        torpedos_vec.borrow_mut().push(torpedo);
+                        // torpedos_vec.borrow_mut().push(torpedo);
       
-                        // let torpedo = Vehicle_100 {
-                        //     dx
-                        // }
-                        // t_100_vec.borrow_mut().push();
                     }
                     _ => (),
                 }
@@ -271,9 +268,9 @@ struct Vehicle_100 {
     position_dx: f32, // raw displacement in x, y
     position_dy: f32,
     // vehicle_inertial_frame_orientation_theta: f32,
-    vifo_theta: f32,
+    vifo_theta: Rad<f32>,
     // polar description
-    velocity_theta: f32,
+    velocity_theta: Rad<f32>,
     velocity_scalar: f32,
     // redundant alternate description of velocity, cartesian
     velocity_dx: f32,
