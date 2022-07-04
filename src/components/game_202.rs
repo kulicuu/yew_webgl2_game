@@ -136,6 +136,31 @@ impl GameTwo {
                 match event.key_code() {
                     39 => v_200.borrow_mut().vifo_theta -= 0.1,
                     38 => {
+                        // add velocity in the direction of vifo theta
+                        // then sum the velocities much like with the torpedo firing.
+                        // let vehicle_new_impulse_velocity_vector_scalar = 
+                        let vniv_scalar = 0.08;
+                        let vniv_theta = v_200.borrow().vifo_theta;
+
+                        let vniv_dx = Rad::cos(vniv_theta) * vniv_scalar;
+                        let vniv_dy = Rad::sin(vniv_theta) * vniv_scalar;
+                        // let vehicle_new_summed_velocity_dx = 
+                        let vnsv_dx = vniv_dx + v_200.borrow().velocity_dx;
+                        let vnsv_dy = vniv_dy + v_200.borrow().velocity_dy;
+
+                        let vnsv_theta = Rad::atan(vnsv_dy / vnsv_dx);
+                        let vnsv_scalar = vnsv_dx / Rad::cos(vnsv_theta);
+                        let vnsv_scalar_2 = vnsv_dy / Rad::sin(vnsv_theta);
+                        // assert vnvs_scalar == vnsv_scalar_2;
+                        vehicle_200.borrow_mut().velocity_dx = vnsv_dx;
+                        vehicle_200.borrow_mut().velocity_dy = vnsv_dy;
+                        vehicle_200.borrow_mut().velocity_theta = vnsv_theta;
+                        vehicle_200.borrow_mut().velocity_scalar = vnsv_scalar;
+
+                    },
+                    37 => v_200.borrow_mut().vifo_theta += 0.1,
+                    32 => {
+                        // log!("shoot torpedo");
                         // let torpedo_own_impulse_charge_velocity_vector_scalar = 
                         let ticv_scalar = 0.0054;
                         // Inherit own charge impulse velocity vector theta from vehicle.
@@ -144,8 +169,8 @@ impl GameTwo {
                         // this is only true for the initial internal charge.
                         // Torpedos will not be flying where they are pointed in general.
                         // let torpedo_own_impulse_velocity_dx =
-                        let ticv_dx = cos(ticv_theta) / ticv_scalar;
-                        let ticv_dy = sin(ticv_theta) / ticv_scalar;
+                        let ticv_dx = cos(ticv_theta) * ticv_scalar;
+                        let ticv_dy = sin(ticv_theta) * ticv_scalar;
                         // let torpedo_summed_velocity_dx =
                         let tsv_dx = ticv_dx + v_200.borrow().velocity_dx;
                         let tsv_dy = ticv_dy + v_200.borrow().velocity_dy;
@@ -167,23 +192,7 @@ impl GameTwo {
                         }));
 
                         torpedos_vec.borrow_mut().push(torpedo);
-
-
-
-                    },
-                    37 => v_200.borrow_mut().vifo_theta += 0.1,
-                    32 => {
-                        // log!("shoot torpedo");
-
-
-
-                        //Looking for a struct comprehension, may cost to keep borrowing (?)
-                        let vehicle_dx = v_200.borrow().dx;
-                        let vehicle_dy = v_200.borrow().dy;
-                        let vehicle_vifo_theta = v_200.borrow().vifo_theta;
-                        let vehicle_velocity_theta = v_200.borrow_mut().velocity_theta;
-
-
+      
                         // let torpedo = Vehicle_100 {
                         //     dx
                         // }
