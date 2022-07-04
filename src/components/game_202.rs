@@ -117,39 +117,45 @@ impl GameTwo {
         // let et_mouse: EventTarget = canvas.into();
         let et_keys : EventTarget = document.into(); 
 
-        let mut v_200 = Vehicle_100 {
-            dx: 0.3,
-            dy: 0.3,
-            vifo_theta: 0.3,
-            velocity_theta: 0.3,
-            velocity: 0.0,
-            velocity_x: 0.0,
-            velocity_y: 0.0,
-        };
+        let mut v_200 = Rc::new(RefCell::new(Vehicle_100 {
+                dx: 0.3,
+                dy: 0.3,
+                vifo_theta: 0.3,
+                velocity_theta: 0.3,
+                velocity: 0.0,
+                velocity_x: 0.0,
+                velocity_y: 0.0,
+        }));
 
         let t_100_vec : Rc<RefCell<Vec<Vehicle_100>>> = Rc::new(RefCell::new(vec![]));
-
+    
         {
             let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
                 // log!("keypress {#:?}", event.key_code());
                 match event.key_code() {
-                    39 => v_200.vifo_theta -= 0.1,
+                    39 => v_200.borrow_mut().vifo_theta -= 0.1,
                     38 => {
-                        // Don't directly mutate displacement, only adjust velocity 
+
+                        let impulse_vector_theta = v_200.borrow_mut().vifo_theta;
+                        let impulse_scalar = v_200.borrow_mut().velocity + 0.005;
+
+
+
+
+
+
                     },
-                    37 => v_200.vifo_theta += 0.1,
+                    37 => v_200.borrow_mut().vifo_theta += 0.1,
                     32 => {
                         // log!("shoot torpedo");
 
-                        // let { 
-                        //     v_dx, v_dy, v_vifo_theta, vehicle_velocity_theta, vehicle_velocity, 
-                        // } = *v_200.borrow();;
 
-                        // Looking for a struct comprehension, may cost to keep borrowing (?)
-                        // let vehicle_dx = v_200.borrow().dx;
-                        // let vehicle_dy = v_200.borrow().dy;
-                        // let vehicle_vifo_theta = v_200.borrow().vifo_theta;
-                        // let vehicle_velocity_theta = v_200.borrow().velocity_theta;
+
+                        //Looking for a struct comprehension, may cost to keep borrowing (?)
+                        let vehicle_dx = v_200.borrow().dx;
+                        let vehicle_dy = v_200.borrow().dy;
+                        let vehicle_vifo_theta = v_200.borrow().vifo_theta;
+                        let vehicle_velocity_theta = v_200.borrow_mut().velocity_theta;
 
 
                         // let torpedo = Vehicle_100 {
@@ -225,6 +231,11 @@ impl GameTwo {
 
         GameTwo::request_animation_frame(alias_rlc.borrow().as_ref().unwrap());
     }
+}
+
+struct Velocity {
+    theta: f32,
+    velocity: f32,
 }
 
 struct Vehicle_100 {
