@@ -197,7 +197,7 @@ impl GameTwo {
             let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
                 // log!("keypress {#:?}", event.key_code());
                 match event.key_code() {
-                    39 => v_200.borrow_mut().vifo_theta -= Rad(0.3),
+                    39 => v_200.borrow_mut().vifo_theta -= Rad(0.1),
                     38 => {
                         // add velocity in the direction of vifo theta
                         // then sum the velocities much like with the torpedo firing.
@@ -223,8 +223,10 @@ impl GameTwo {
                         v_200.borrow_mut().velocity_scalar = vnsv_scalar;
 
                     },
-                    37 => v_200.borrow_mut().vifo_theta += Rad(0.3),
+                    37 => v_200.borrow_mut().vifo_theta += Rad(0.1),
                     32 => {
+
+                        
                         let ticv_scalar = 0.34;
                         // Inherit own charge impulse velocity vector theta from vehicle.
                         // let torpedo_internal_charge_vifo_theta = v_200.borrow().vifo_theta; 
@@ -253,6 +255,7 @@ impl GameTwo {
                             velocity_dx: tsv_dx,
                             velocity_dy: tsv_dy,
                         };
+
                         let torpedo_wrapped = Rc::new(RefCell::new(torpedo));
                         tv.borrow_mut().push(torpedo_wrapped);
                     }
