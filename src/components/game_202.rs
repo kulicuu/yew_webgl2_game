@@ -184,12 +184,15 @@ impl GameTwo {
                 velocity_dx: 0.0,
                 velocity_dy: 0.0,
         }));
-
         let v_200 = v_200.clone();
         let alias_v_200 = v_200.clone();
 
-        let torpedos_vec : Rc<RefCell<Vec<Vehicle_100>>> = Rc::new(RefCell::new(vec![]));
-    
+
+        let mut tv : Rc<RefCell<Vec<Rc<RefCell<Vehicle_100>>>>> = Rc::new(RefCell::new(vec![]));
+        let tv = tv.clone();
+        let torpedos_vec = tv.clone();
+        // let alias_tv = torpedos_vec.clone();
+        
         {
             let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
                 // log!("keypress {#:?}", event.key_code());
@@ -252,7 +255,8 @@ impl GameTwo {
                             velocity_dx: tsv_dx,
                             velocity_dy: tsv_dy,
                         };
-                        torpedos_vec.borrow_mut().push(torpedo);
+                        let torpedo_wrapped = Rc::new(RefCell::new(torpedo));
+                        tv.borrow_mut().push(torpedo_wrapped);
                     }
                     _ => (),
                 }
@@ -309,14 +313,12 @@ impl GameTwo {
         log!("cursor", cursor);
 
 
-
+        let alias_tv = torpedos_vec.clone();
 
         let gl = gl.clone();
         let render_loop_closure = Rc::new(RefCell::new(None));
         let alias_rlc = render_loop_closure.clone();
         *alias_rlc.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-
-
             gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vehicle_100_vertex_buffer));
             gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vehicle_100_js_vertices, GL::STATIC_DRAW);
             let vehicle_100_vertices_position = gl.get_attrib_location(&vehicle_100_shader_program, "a_position") as u32;
@@ -377,7 +379,13 @@ impl GameTwo {
 
             gl.use_program(Some(&torpedo_100_shader_program));
 
-            gl.draw_arrays(GL::TRIANGLES, 0, 6);
+            // gl.draw_arrays(GL::TRIANGLES, 0, 6);
+
+
+       
+            for torp in torpedos_vec.borrow().iter() {
+                
+            }
 
 
 
