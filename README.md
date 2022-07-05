@@ -21,7 +21,7 @@ Go to localhost:9090
 
 Use the left-arrow and right-arrow keys to rotate the spaceship.
 
-Use the up-arrow key to fire the rocket motor.
+Use the up-arrow key to fire the rocket motor to move the spaceship.
 
 Use the spacebar to fire the torpedos.
 

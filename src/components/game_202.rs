@@ -287,9 +287,9 @@ impl GameTwo {
         ];
 
         let torpedo_100_vertices: Vec<f32> = vec![
-            0.013, 0.0,
-            -0.005, -0.005, 
-            -0.005, 0.005, 
+            0.007, 0.0,
+            -0.0038, -0.0038, 
+            -0.0038, 0.0038, 
         ];
 
         let vehicle_100_vertex_buffer = gl.create_buffer().unwrap();
@@ -393,42 +393,36 @@ impl GameTwo {
 
             gl.use_program(Some(&torpedo_100_shader_program));
 
-            // gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
+            let mut removals: Vec<usize> = vec![];
 
-       
-            for torp in torpedos_vec.borrow().iter() {
-
+            for (idx, torp) in torpedos_vec.borrow_mut().iter().enumerate() {
                 let old_pos_dx = torp.borrow().position_dx;
                 let additional_dx = torp.borrow().velocity_dx * (delta_scalar as f32);
-                let mut new_pos_dx = old_pos_dx + additional_dx;
-                if new_pos_dx < -1.0 {
-                    new_pos_dx = new_pos_dx + 2.0;
-                }
-                if new_pos_dx > 1.0 {
-                    new_pos_dx = new_pos_dx - 2.0;
-                }
-                torp.borrow_mut().position_dx = new_pos_dx;
-    
+                let new_pos_dx = old_pos_dx + additional_dx;
                 let old_pos_dy = torp.borrow().position_dy;
                 let additional_dy = torp.borrow().velocity_dy * (delta_scalar as f32);
-                let mut new_pos_dy = old_pos_dy + additional_dy;
-                if new_pos_dy < -1.0 {
-                    new_pos_dy += 2.0;
+                let new_pos_dy = old_pos_dy + additional_dy;
+
+                if !(new_pos_dx < -1.0) && !(new_pos_dx > 1.0)
+                    && !(new_pos_dy < -1.0) && !(new_pos_dy > 1.0) {
+                    // torpedos_vec.borrow_mut().remove(idx);
+                    torp.borrow_mut().position_dx = new_pos_dx;
+                    torp.borrow_mut().position_dy = new_pos_dy; 
+    
+    
+                    gl.uniform2f(t_200_pos_deltas_loc.as_ref(), new_pos_dx, new_pos_dy);
+                    gl.uniform1f(t_200_vifo_theta_loc.as_ref(), torp.borrow().vifo_theta.0);
+    
+                    gl.draw_arrays(GL::TRIANGLES, 0, 6);
+                } else {
+                    removals.push(idx);
                 }
-                if new_pos_dy > 1.0 {
-                    new_pos_dy -= 2.0;
-                }
-                torp.borrow_mut().position_dy = new_pos_dy; 
-
-
-                gl.uniform2f(t_200_pos_deltas_loc.as_ref(), new_pos_dx, new_pos_dy);
-                gl.uniform1f(t_200_vifo_theta_loc.as_ref(), torp.borrow().vifo_theta.0);
-
-                gl.draw_arrays(GL::TRIANGLES, 0, 6);
+                
             }
-
-
+            for idx in removals.iter() {
+                torpedos_vec.borrow_mut().remove(*idx);
+            }
 
             GameTwo::request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
         }) as Box<dyn FnMut()>));
