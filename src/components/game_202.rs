@@ -144,7 +144,6 @@ impl GameTwo {
 
         let vehicle_100_vert_code = include_str!("../shaders/vehicle_100.vert");
         let torpedo_100_vert_code = include_str!("../shaders/torpedo_100.vert");
-
         let vehicle_100_vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
         let torpedo_100_vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
         
@@ -179,6 +178,16 @@ impl GameTwo {
 
         // why not just use the document exposed by web-sys?
         let document = web_sys::window().unwrap().document().unwrap();
+
+
+
+        // let game_state = create_game_state(0).unwrap();
+
+
+
+
+
+
 
         // let et_mouse: EventTarget = canvas.into();
         let et_keys : EventTarget = document.into(); 
@@ -364,12 +373,37 @@ impl GameTwo {
         let timestamp = Instant::now();
         let mut cursor = timestamp.elapsed().as_millis();
 
+
+
+        // let game_inner_state = Arc::new(Mutex::new(GameInnerState {
+        //     player_one: v_300,
+        //     player_two: v400,
+
+        // }));
+
+        
+
         let alias_tv = torpedos_vec.clone();
 
         let gl = gl.clone();
         let render_loop_closure = Rc::new(RefCell::new(None));
         let alias_rlc = render_loop_closure.clone();
         *alias_rlc.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+
+
+            // Update and consult state. State.
+
+            // Render operations :: side-effects.
+
+            // Websocket operations :: side-effects.
+
+            // Sounds operations :: side effects.
+
+            // WebRTC operations :: side effects
+
+
+
+
             gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vehicle_100_vertex_buffer));
             gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vehicle_100_js_vertices, GL::STATIC_DRAW);
             let vehicle_100_vertices_position = gl.get_attrib_location(&vehicle_100_shader_program, "a_position") as u32;
@@ -409,12 +443,9 @@ impl GameTwo {
             alias_v_200.borrow_mut().position_dy = new_pos_dy; 
 
             gl.use_program(Some(&vehicle_100_shader_program));
-
             gl.uniform1f(time_location.as_ref(), 0.4 as f32);
-            
             gl.uniform2f(v_200_pos_deltas_loc.as_ref(), new_pos_dx, new_pos_dy);
             gl.uniform1f(v_200_vifo_theta_loc.as_ref(), alias_v_200.borrow().vifo_theta.0);
-
             gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
 
@@ -458,10 +489,14 @@ impl GameTwo {
             for idx in removals.iter() {
                 if *idx < torpedos_vec.borrow().len() {
                     torpedos_vec.borrow_mut().remove(*idx);
-                }
-                    
+                }      
             }
-            state_update(); 
+
+
+            // update_game_inner_state(); 
+            
+            
+            
             GameTwo::request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
         }) as Box<dyn FnMut()>));
 
@@ -484,35 +519,186 @@ struct Vehicle_100 {
 }
 
 
-fn sep_render() {
+// fn sep_render() {
 
-}
+// }
 
-fn make_websocket () {
+// fn make_websocket () {
 
-}
+// }
 
-
-
-struct ContextMenuState {
-    game_history: Vec<String>,
-    game_in_progress: Arc<Mutex<GameInnerState>>,
-}
-
-
-struct GameInnerState {
-    player_one: Vehicle_100,
-    player_two:  Arc<Mutex<Vehicle_100>>,
-    torps_in_flight: Arc<Mutex<Vec<Vehicle_100>>>,
-    elapsed_time: u128,
-    game_over: bool,
-    collision: Vehicle_100, // model an explosion around a vector sum of the collided vehicles, with extra effects. covering torpedo collisions
-    // This would be a good place to use Rust traits.
-    result: u8,
-}
+// // Try with Arc<Mutex>>
+// fn create_game_state
+// <'a>
+// (
+//     mode: u8,
+// )
+// -> Result<Arc<Mutex<GameInnerState>>, &'a str>
+// {
 
 
-fn state_update() {
+//     let player_one = Arc::new(Mutex::new(Vehicle_100 {
+//         position_dx: 0.3,
+//         position_dy: 0.3,
+//         vifo_theta: Rad(0.3),
+//         velocity_theta: Rad(0.3),
+//         velocity_scalar: 0.0,
+//         velocity_dx: 0.0,
+//         velocity_dy: 0.0,
+//     }));
 
-}
+//     let player_two = Arc::new(Mutex::new(Vehicle_100 {
+//         position_dx: -0.3,
+//         position_dy: -0.3,
+//         vifo_theta: Rad(-0.3),
+//         velocity_theta: Rad(-0.3),
+//         velocity_scalar: 0.0,
+//         velocity_dx: 0.0,
+//         velocity_dy: 0.0,
+//     }));
+
+//     let torps_in_flight = Arc::new(Mutex::new(vec![]));
+//     let collisions = Arc::new(Mutex::new(vec![]));
+
+//     let game_state = GameInnerState {
+//         player_one: v_200,
+//         player_two: v_300,
+//         torps_in_flight: torps_in_flight,
+//         start_time: Arc::new(Instant::now()),
+//         elapsed_time: Arc::new(Mutex::new(0)),
+//         game_over: Arc::new(Mutex::new(false)),
+//         collisions: collisions,
+//         mode: Arc::new(mode),
+//         result: Arc::new(Mutex::new(0)),
+//     };
+
+//     // Mode 0 is two player local, so we'll setup both event listener sets.
+
+//     // match mode {
+//     //     0 => {
+
+//     //     },
+//     //     1 => {
+
+//     //     },
+//     //     _ => {
+
+//     //     }
+//     // };
+
+
+//     Ok( Arc::new(Mutex::new(game_state)) )
+//     // Err("err")
+// }
+
+
+// fn update_inner_state
+// (
+//     game_inner_state: Arc<Mutex<GameInnerState>>
+// )
+// -> Arc<Mutex<GameInnerState>>
+// {
+//     game_inner_state
+// }
+
+// fn setup_player_one_local_listeners
+// (
+//     player_one: Arc<Mutex<Vehicle_100>>,
+//     torps_in_flight: Arc<Mutex<Vec<Vehicle_100>>,
+// )
+// {
+//     {
+//         let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
+//             // log!("keypress {#:?}", event.key_code());
+//             match event.key_code() {
+//                 39 => player_one.lock().unwrap().vifo_theta -= Rad(0.1),
+//                 38 => {
+//                     // add velocity in the direction of vifo theta
+//                     // then sum the velocities much like with the torpedo firing.
+//                     // let vehicle_new_impulse_velocity_vector_scalar = 
+//                     let vniv_scalar = 0.08;
+//                     let vniv_theta = player_one.lock().unwrap().vifo_theta;
+
+//                     let vniv_dx = Rad::cos(vniv_theta) * vniv_scalar;
+//                     let vniv_dy = Rad::sin(vniv_theta) * vniv_scalar;
+                    
+//                     // let vehicle_new_summed_velocity_dx = 
+//                     let vnsv_dx = vniv_dx + player_one.lock().unwrap().velocity_dx;
+//                     let vnsv_dy = vniv_dy + player_one.lock().unwrap().velocity_dy;
+
+//                     let vnsv_theta = Rad::atan(vnsv_dy / vnsv_dx);
+//                     // let vnsv_scalar = (vnsv_dx as f32) / (Rad::cos(Rad(vnsv_theta)) as f32);
+//                     let vnsv_scalar = vnsv_dx / Rad::cos(vnsv_theta);
+//                     let vnsv_scalar_2 = vnsv_dy / Rad::sin(vnsv_theta);
+//                     // // assert vnvs_scalar == vnsv_scalar_2;
+//                     player_one.lock().unwrap().velocity_dx = vnsv_dx;
+//                     player_one.lock().unwrap().velocity_dy = vnsv_dy;
+//                     player_one.lock().unwrap().velocity_theta = vnsv_theta.into();
+//                     player_one.lock().unwrap().velocity_scalar = vnsv_scalar;
+
+//                 },
+//                 37 => v_200.borrow_mut().vifo_theta += Rad(0.1),
+//                 32 => {
+//                     let ticv_scalar = 0.34;
+//                     let ticv_theta = player_one.lock().unwrap().vifo_theta;
+//                     // let torpedo_own_impulse_velocity_dx =
+//                     let ticv_dx = Rad::cos(ticv_theta) * ticv_scalar;
+//                     let ticv_dy = Rad::sin(ticv_theta) * ticv_scalar;
+//                     // let torpedo_summed_velocity_dx =
+//                     let tsv_dx = ticv_dx + player_one.lock().unwrap().velocity_dx;
+//                     let tsv_dy = ticv_dy + v_200.borrow().velocity_dy;
+//                     // let torpedo_summed_velocity_theta = Rad::atan(tsv_dy / tsv_dx);
+//                     let tsv_theta = Rad::atan(tsv_dy / tsv_dx);
+//                     let tsv_scalar = tsv_dx / Rad::cos(tsv_theta);
+//                     let tsv_scalar_2 = tsv_dy / Rad::sin(tsv_theta);
+//                     // assert tsv_scalar == tsv_scalar_2;
+//                     let mut torpedo = Vehicle_100 {
+//                         position_dx:  v_200.borrow().position_dx,
+//                         position_dy: v_200.borrow().position_dy,
+//                         vifo_theta: ticv_theta,
+//                         velocity_theta: tsv_theta,
+//                         velocity_scalar: tsv_scalar,
+//                         velocity_dx: tsv_dx,
+//                         velocity_dy: tsv_dy,
+//                     };
+//                     let torpedo_wrapped = Rc::new(RefCell::new(torpedo));
+//                     tv.borrow_mut().push(torpedo_wrapped);
+
+//                 }
+//                 _ => (),
+//             }
+
+//         }) as Box<dyn FnMut(KeyboardEvent)>);
+//         et_keys
+//             .add_event_listener_with_callback("keydown", keypress_cb.as_ref().unchecked_ref())
+//             .unwrap();
+//         keypress_cb.forget();
+
+//     } 
+// }
+
+
+// struct ContextMenuState {
+//     game_history: Vec<String>,
+//     game_in_progress: Arc<Mutex<GameInnerState>>,
+// }
+
+
+// struct GameInnerState {
+//     player_one: Arc<Mutex<Vehicle_100>>,
+//     player_two:  Arc<Mutex<Vehicle_100>>,
+//     torps_in_flight: Arc<Mutex<Vec<Vehicle_100>>>,
+//     start_time: Arc<Instant>,
+//     elapsed_time: Arc<Mutex<u128>>,
+//     game_over: Arc<Mutex<bool>>,
+//     collisions: Arc<Mutex<Vec<Vehicle_100>>>, // model an explosion around a vector sum of the collided vehicles, with extra effects. covering torpedo collisions
+//     // This would be a good place to use Rust traits.
+//     result: Arc<Mutex<u8>>,
+//     mode: Arc<u8>, // 1 player vs computer, 2 player local, 2 player network
+// }
+
+
+// fn state_update() {
+
+// }
 
