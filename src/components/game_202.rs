@@ -202,8 +202,9 @@ impl GameTwo {
                         let vniv_scalar = 0.08;
                         let vniv_theta = v_200.borrow().vifo_theta;
 
-                        let vniv_dy = Rad::cos(vniv_theta) * vniv_scalar;
-                        let vniv_dx = Rad::sin(-vniv_theta) * vniv_scalar;
+                        let vniv_dx = Rad::cos(vniv_theta) * vniv_scalar;
+                        let vniv_dy = Rad::sin(vniv_theta) * vniv_scalar;
+                        
                         // let vehicle_new_summed_velocity_dx = 
                         let vnsv_dx = vniv_dx + v_200.borrow().velocity_dx;
                         let vnsv_dy = vniv_dy + v_200.borrow().velocity_dy;
@@ -264,11 +265,18 @@ impl GameTwo {
 
         }
 
+        // let vehicle_100_vertices: Vec<f32> = vec![
+        //     0.0, 0.034,
+        //      -0.011, -0.011,
+        //     0.011, -0.011,
+        // ];
+
         let vehicle_100_vertices: Vec<f32> = vec![
-            0.0, 0.034,
+            0.034, 0.0, 
              -0.011, -0.011,
-            0.011, -0.011,
+            -0.011, 0.011,
         ];
+
 
         let torpedo_100_vertices: Vec<f32> = vec![
             0.0, 0.012,
