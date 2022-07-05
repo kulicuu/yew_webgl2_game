@@ -17,5 +17,14 @@ From project root, run `trunk serve`.
 Go to localhost:9090
 
 
+## How to play the game:
+
+Use the left-arrow and right-arrow keys to rotate the spaceship.
+
+Use the up-arrow key to fire the rocket motor.
+
+Use the spacebar to fire the torpedos.
+
+
 ![til](./assets/sample.gif)
 
