@@ -225,9 +225,7 @@ impl GameTwo {
                     },
                     37 => v_200.borrow_mut().vifo_theta += Rad(0.3),
                     32 => {
-                        // log!("shoot torpedo");
-                        // let torpedo_own_impulse_charge_velocity_vector_scalar = 
-                        let ticv_scalar = 0.0054;
+                        let ticv_scalar = 0.34;
                         // Inherit own charge impulse velocity vector theta from vehicle.
                         // let torpedo_internal_charge_vifo_theta = v_200.borrow().vifo_theta; 
                         let ticv_theta = v_200.borrow().vifo_theta;
@@ -269,17 +267,29 @@ impl GameTwo {
 
         }
 
-        let vehicle_100_vertices: Vec<f32> = vec![
+        let vehicle_050_vertices: Vec<f32> = vec![
             0.034, 0.0, 
              -0.011, -0.011,
             -0.011, 0.011,
         ];
 
+        let vehicle_100_vertices: Vec<f32> = vec![
+            0.021, 0.0, 
+             -0.008, -0.008,
+            -0.008, 0.008,
+        ];
 
-        let torpedo_100_vertices: Vec<f32> = vec![
+
+        let torpedo_050_vertices: Vec<f32> = vec![
             0.012, 0.0,
             -0.007, -0.007, 
             -0.007, 0.007, 
+        ];
+
+        let torpedo_100_vertices: Vec<f32> = vec![
+            0.013, 0.0,
+            -0.005, -0.005, 
+            -0.005, 0.005, 
         ];
 
         let vehicle_100_vertex_buffer = gl.create_buffer().unwrap();
@@ -307,6 +317,10 @@ impl GameTwo {
         let v_200_pos_deltas_loc = gl.get_uniform_location(&vehicle_100_shader_program, "pos_deltas");
 
         let v_200_vifo_theta_loc = gl.get_uniform_location(&vehicle_100_shader_program, "vifo_theta");
+
+        let t_200_pos_deltas_loc = gl.get_uniform_location(&torpedo_100_shader_program, "pos_deltas");
+
+        let t_200_vifo_theta_loc = gl.get_uniform_location(&torpedo_100_shader_program, "vifo_theta");
 
         let timestamp = Instant::now();
         let mut cursor = timestamp.elapsed().as_millis();
@@ -362,8 +376,8 @@ impl GameTwo {
             gl.use_program(Some(&vehicle_100_shader_program));
 
             gl.uniform1f(time_location.as_ref(), 0.4 as f32);
+            
             gl.uniform2f(v_200_pos_deltas_loc.as_ref(), new_pos_dx, new_pos_dy);
-
             gl.uniform1f(v_200_vifo_theta_loc.as_ref(), alias_v_200.borrow().vifo_theta.0);
 
             gl.draw_arrays(GL::TRIANGLES, 0, 6);
@@ -384,7 +398,34 @@ impl GameTwo {
 
        
             for torp in torpedos_vec.borrow().iter() {
-                
+
+                let old_pos_dx = torp.borrow().position_dx;
+                let additional_dx = torp.borrow().velocity_dx * (delta_scalar as f32);
+                let mut new_pos_dx = old_pos_dx + additional_dx;
+                if new_pos_dx < -1.0 {
+                    new_pos_dx = new_pos_dx + 2.0;
+                }
+                if new_pos_dx > 1.0 {
+                    new_pos_dx = new_pos_dx - 2.0;
+                }
+                torp.borrow_mut().position_dx = new_pos_dx;
+    
+                let old_pos_dy = torp.borrow().position_dy;
+                let additional_dy = torp.borrow().velocity_dy * (delta_scalar as f32);
+                let mut new_pos_dy = old_pos_dy + additional_dy;
+                if new_pos_dy < -1.0 {
+                    new_pos_dy += 2.0;
+                }
+                if new_pos_dy > 1.0 {
+                    new_pos_dy -= 2.0;
+                }
+                torp.borrow_mut().position_dy = new_pos_dy; 
+
+
+                gl.uniform2f(t_200_pos_deltas_loc.as_ref(), new_pos_dx, new_pos_dy);
+                gl.uniform1f(t_200_vifo_theta_loc.as_ref(), torp.borrow().vifo_theta.0);
+
+                gl.draw_arrays(GL::TRIANGLES, 0, 6);
             }
 
 
