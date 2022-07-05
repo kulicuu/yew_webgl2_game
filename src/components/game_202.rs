@@ -9,6 +9,8 @@ use yew::{html, Component, Context, Html, NodeRef};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
+use std::sync::{Arc, Mutex};
+
 use cgmath::prelude::*;
 use cgmath::Rad;
 
@@ -23,6 +25,12 @@ use gloo_console::log;
 use std::f32::consts::PI;
 
 const AMORTIZATION: f32 = 0.95;
+
+
+const RESOLUTION : f32 = 8.0;
+const SCALE : f32 = 0.08;
+const HALF : f32 = SCALE / 2.0;
+const STEP : f32 = SCALE / RESOLUTION;
 
 // https://github.com/rust-lang/rust/issues/48564#issuecomment-698712971
 // std::time invocation causes panic.  There is a comment linked above which solves this
@@ -225,27 +233,19 @@ impl GameTwo {
                     },
                     37 => v_200.borrow_mut().vifo_theta += Rad(0.1),
                     32 => {
-
-                        
                         let ticv_scalar = 0.34;
-                        // Inherit own charge impulse velocity vector theta from vehicle.
-                        // let torpedo_internal_charge_vifo_theta = v_200.borrow().vifo_theta; 
                         let ticv_theta = v_200.borrow().vifo_theta;
-                        // this is only true for the initial internal charge.
-                        // Torpedos will not be flying where they are pointed in general.
                         // let torpedo_own_impulse_velocity_dx =
                         let ticv_dx = Rad::cos(ticv_theta) * ticv_scalar;
                         let ticv_dy = Rad::sin(ticv_theta) * ticv_scalar;
                         // let torpedo_summed_velocity_dx =
                         let tsv_dx = ticv_dx + v_200.borrow().velocity_dx;
                         let tsv_dy = ticv_dy + v_200.borrow().velocity_dy;
-
                         // let torpedo_summed_velocity_theta = Rad::atan(tsv_dy / tsv_dx);
                         let tsv_theta = Rad::atan(tsv_dy / tsv_dx);
                         let tsv_scalar = tsv_dx / Rad::cos(tsv_theta);
                         let tsv_scalar_2 = tsv_dy / Rad::sin(tsv_theta);
                         // assert tsv_scalar == tsv_scalar_2;
-
                         let mut torpedo = Vehicle_100 {
                             position_dx:  v_200.borrow().position_dx,
                             position_dy: v_200.borrow().position_dy,
@@ -255,9 +255,59 @@ impl GameTwo {
                             velocity_dx: tsv_dx,
                             velocity_dy: tsv_dy,
                         };
-
                         let torpedo_wrapped = Rc::new(RefCell::new(torpedo));
                         tv.borrow_mut().push(torpedo_wrapped);
+
+
+                        // salvoed
+                        // for i in 0..7 {
+                        //     // with ticv_vifo_theta we get orgthogonal by adding PI to it.
+                        //     let ticv_scalar = 0.34;
+                        //     // Inherit own charge impulse velocity vector theta from vehicle.
+                        //     // let torpedo_internal_charge_vifo_theta = v_200.borrow().vifo_theta; 
+                        //     let ticv_theta = v_200.borrow().vifo_theta;
+                        //     let lateral_axis_psi = Rad(ticv_theta.0 + PI);
+
+
+                        //     let lateral_scalar_r = (STEP * (i as f32)) - HALF;
+                        //     // if we have the polar form of the starting point of the vehicle, we add PI to it to get the angle to displace the salvo member. we add the polar scalar r to it. r here is radius not rotation.
+                        //     // that's then just another vector to add 
+                        //     // this is only true for the initial internal charge.
+                        //     // Torpedos will not be flying where they are pointed in general.
+                        //     // let torpedo_own_impulse_velocity_dx =
+                        //     let ticv_dx = Rad::cos(ticv_theta) * ticv_scalar;
+                        //     let ticv_dy = Rad::sin(ticv_theta) * ticv_scalar;
+
+                        //     let lateral_dx = Rad::cos(lateral_axis_psi) * lateral_scalar_r;
+                        //     let lateral_dy = Rad::sin(lateral_axis_psi) * lateral_scalar_r;
+
+
+
+                        //     // let torpedo_summed_velocity_dx =
+                        //     let tsv_dx = ticv_dx + v_200.borrow().velocity_dx;
+                        //     let tsv_dy = ticv_dy + v_200.borrow().velocity_dy;
+
+                        //     // let torpedo_summed_velocity_theta = Rad::atan(tsv_dy / tsv_dx);
+                        //     let tsv_theta = Rad::atan(tsv_dy / tsv_dx);
+                        //     let tsv_scalar = tsv_dx / Rad::cos(tsv_theta);
+                        //     let tsv_scalar_2 = tsv_dy / Rad::sin(tsv_theta);
+                        //     // assert tsv_scalar == tsv_scalar_2;
+
+                        //     let mut torpedo = Vehicle_100 {
+                        //         position_dx:  v_200.borrow().position_dx + lateral_dx,
+                        //         position_dy: v_200.borrow().position_dy + lateral_dy,
+                        //         vifo_theta: ticv_theta,
+                        //         velocity_theta: tsv_theta,
+                        //         velocity_scalar: tsv_scalar,
+                        //         velocity_dx: tsv_dx,
+                        //         velocity_dy: tsv_dy,
+                        //     };
+
+                        //     let torpedo_wrapped = Rc::new(RefCell::new(torpedo));
+                        //     tv.borrow_mut().push(torpedo_wrapped);
+                        // }
+
+
                     }
                     _ => (),
                 }
@@ -297,25 +347,11 @@ impl GameTwo {
 
         let vehicle_100_vertex_buffer = gl.create_buffer().unwrap();
         let vehicle_100_js_vertices = js_sys::Float32Array::from(vehicle_100_vertices.as_slice());
-        // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vehicle_100_vertex_buffer));
-        // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vehicle_100_js_vertices, GL::STATIC_DRAW);
-        // let vehicle_100_vertices_position = gl.get_attrib_location(&vehicle_100_shader_program, "a_position") as u32;
-        // gl.vertex_attrib_pointer_with_i32(vehicle_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
-        // gl.enable_vertex_attrib_array(vehicle_100_vertices_position);
 
         let torpedo_100_vertex_buffer = gl.create_buffer().unwrap();
         let torpedo_100_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
-        // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&torpedo_100_vertex_buffer));
-        // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &torpedo_100_js_vertices, GL::STATIC_DRAW);
-        // let torpedo_100_vertices_position = gl.get_attrib_location(&torpedo_100_shader_program, "b_position") as u32;
-        // gl.vertex_attrib_pointer_with_i32(torpedo_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
-        // gl.enable_vertex_attrib_array(torpedo_100_vertices_position);
 
         let time_location = gl.get_uniform_location(&vehicle_100_shader_program, "u_time");
-
-
-        
-        // let r1_location = gl.get_uniform_location(&shader_program, "r1");
 
         let v_200_pos_deltas_loc = gl.get_uniform_location(&vehicle_100_shader_program, "pos_deltas");
 
@@ -327,8 +363,6 @@ impl GameTwo {
 
         let timestamp = Instant::now();
         let mut cursor = timestamp.elapsed().as_millis();
-        log!("cursor", cursor);
-
 
         let alias_tv = torpedos_vec.clone();
 
@@ -347,8 +381,6 @@ impl GameTwo {
             cursor = now;
 
             let delta_scalar = (time_delta as f32) * 0.001; 
-            // gl.vertex_attrib_pointer_with_i32(vehicle_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
-            // gl.enable_vertex_attrib_array(vehicle_100_vertices_position);
 
             gl.use_program(Some(&vehicle_100_shader_program));
             gl.clear_color(0.99, 0.99, 0.99, 1.0);
@@ -429,7 +461,7 @@ impl GameTwo {
                 }
                     
             }
-
+            state_update(); 
             GameTwo::request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
         }) as Box<dyn FnMut()>));
 
@@ -449,5 +481,38 @@ struct Vehicle_100 {
     velocity_dx: f32,
     velocity_dy: f32,
     
+}
+
+
+fn sep_render() {
+
+}
+
+fn make_websocket () {
+
+}
+
+
+
+struct ContextMenuState {
+    game_history: Vec<String>,
+    game_in_progress: Arc<Mutex<GameInnerState>>,
+}
+
+
+struct GameInnerState {
+    player_one: Vehicle_100,
+    player_two:  Arc<Mutex<Vehicle_100>>,
+    torps_in_flight: Arc<Mutex<Vec<Vehicle_100>>>,
+    elapsed_time: u128,
+    game_over: bool,
+    collision: Vehicle_100, // model an explosion around a vector sum of the collided vehicles, with extra effects. covering torpedo collisions
+    // This would be a good place to use Rust traits.
+    result: u8,
+}
+
+
+fn state_update() {
+
 }
 
