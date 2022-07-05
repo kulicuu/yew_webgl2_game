@@ -421,7 +421,10 @@ impl GameTwo {
                 
             }
             for idx in removals.iter() {
-                torpedos_vec.borrow_mut().remove(*idx);
+                if *idx < torpedos_vec.borrow().len() {
+                    torpedos_vec.borrow_mut().remove(*idx);
+                }
+                    
             }
 
             GameTwo::request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
