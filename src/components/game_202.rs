@@ -265,12 +265,6 @@ impl GameTwo {
 
         }
 
-        // let vehicle_100_vertices: Vec<f32> = vec![
-        //     0.0, 0.034,
-        //      -0.011, -0.011,
-        //     0.011, -0.011,
-        // ];
-
         let vehicle_100_vertices: Vec<f32> = vec![
             0.034, 0.0, 
              -0.011, -0.011,
@@ -279,24 +273,24 @@ impl GameTwo {
 
 
         let torpedo_100_vertices: Vec<f32> = vec![
-            0.0, 0.012,
-            -0.007, -0.007,
-            0.007, -0.007,
+            0.012, 0.0,
+            -0.007, -0.007, 
+            -0.007, 0.007, 
         ];
 
         let vehicle_100_vertex_buffer = gl.create_buffer().unwrap();
         let vehicle_100_js_vertices = js_sys::Float32Array::from(vehicle_100_vertices.as_slice());
-        gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vehicle_100_vertex_buffer));
-        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vehicle_100_js_vertices, GL::STATIC_DRAW);
-        let vehicle_100_vertices_position = gl.get_attrib_location(&vehicle_100_shader_program, "a_position") as u32;
-        gl.vertex_attrib_pointer_with_i32(vehicle_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(vehicle_100_vertices_position);
+        // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vehicle_100_vertex_buffer));
+        // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vehicle_100_js_vertices, GL::STATIC_DRAW);
+        // let vehicle_100_vertices_position = gl.get_attrib_location(&vehicle_100_shader_program, "a_position") as u32;
+        // gl.vertex_attrib_pointer_with_i32(vehicle_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
+        // gl.enable_vertex_attrib_array(vehicle_100_vertices_position);
 
-        // let torpedo_100_vertex_buffer = gl.create_buffer().unwrap();
-        // let torpedo_100_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
+        let torpedo_100_vertex_buffer = gl.create_buffer().unwrap();
+        let torpedo_100_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
         // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&torpedo_100_vertex_buffer));
         // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &torpedo_100_js_vertices, GL::STATIC_DRAW);
-        // let torpedo_100_vertices_position = gl.get_attrib_location(&torpedo_100_shader_program, "a_position") as u32;
+        // let torpedo_100_vertices_position = gl.get_attrib_location(&torpedo_100_shader_program, "b_position") as u32;
         // gl.vertex_attrib_pointer_with_i32(torpedo_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
         // gl.enable_vertex_attrib_array(torpedo_100_vertices_position);
 
@@ -315,16 +309,27 @@ impl GameTwo {
         log!("cursor", cursor);
 
 
+
+
         let gl = gl.clone();
         let render_loop_closure = Rc::new(RefCell::new(None));
         let alias_rlc = render_loop_closure.clone();
         *alias_rlc.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+
+
+            gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vehicle_100_vertex_buffer));
+            gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vehicle_100_js_vertices, GL::STATIC_DRAW);
+            let vehicle_100_vertices_position = gl.get_attrib_location(&vehicle_100_shader_program, "a_position") as u32;
+            gl.vertex_attrib_pointer_with_i32(vehicle_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
+            gl.enable_vertex_attrib_array(vehicle_100_vertices_position);
 
             let now = timestamp.elapsed().as_millis();
             let time_delta = now - cursor;
             cursor = now;
 
             let delta_scalar = (time_delta as f32) * 0.001; 
+            // gl.vertex_attrib_pointer_with_i32(vehicle_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
+            // gl.enable_vertex_attrib_array(vehicle_100_vertices_position);
 
             gl.use_program(Some(&vehicle_100_shader_program));
             gl.clear_color(0.99, 0.99, 0.99, 1.0);
@@ -362,6 +367,17 @@ impl GameTwo {
             gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
 
+            gl.bind_buffer(GL::ARRAY_BUFFER, Some(&torpedo_100_vertex_buffer));
+            gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &torpedo_100_js_vertices, GL::STATIC_DRAW);
+            let torpedo_100_vertices_position = gl.get_attrib_location(&torpedo_100_shader_program, "b_position") as u32;
+            gl.vertex_attrib_pointer_with_i32(torpedo_100_vertices_position, 2, GL::FLOAT, false, 0, 0);
+            gl.enable_vertex_attrib_array(torpedo_100_vertices_position);
+
+
+
+            gl.use_program(Some(&torpedo_100_shader_program));
+
+            gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
 
 
