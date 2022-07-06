@@ -4,6 +4,7 @@ use web_sys::{
     EventTarget, MouseEvent, WebGlBuffer, WebGlProgram,
     WebGlUniformLocation,
 };
+
 use yew::html::Scope;
 use yew::{html, Component, Context, Html, NodeRef};
 use wasm_bindgen::prelude::*;
@@ -134,22 +135,34 @@ fn render_game
         .unwrap()
         .dyn_into::<GL>()
         .unwrap();
-
     let gl : Arc<GL> = Arc::new(gl);
 
-    setup_shaders(gl);
-
-
-
-    // create state independently of setup event listener effects api
-
+    setup_shaders(gl.clone());
     let game_state = create_game_state().unwrap();
-
 
     set_player_one_events(
         game_state.clone(),
     );
 
+    // let game_state = game_state.clone();
+    let mut cursor = game_state.lock().unwrap().start_time.elapsed().as_millis();
+
+    let render_loop_closure = Rc::new(RefCell::new(None));
+    let alias_rlc = render_loop_closure.clone();
+    *alias_rlc.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+        let now = game_state.lock().unwrap().start_time.elapsed().as_millis();
+        let time_delta = now - cursor;
+        cursor = now;
+
+        let game_state = update_game_state(time_delta, game_state.clone()).unwrap();
+
+
+
+        
+        request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
+    }) as Box<dyn FnMut()>));
+
+    request_animation_frame(alias_rlc.borrow().as_ref().unwrap());
 
 }
 
@@ -197,6 +210,44 @@ fn setup_shaders
 
     gl.link_program(&vehicle_100_shader_program);
     gl.link_program(&torpedo_100_shader_program);
+
+    let vehicle_050_vertices: Vec<f32> = vec![
+        0.034, 0.0, 
+         -0.011, -0.011,
+        -0.011, 0.011,
+    ];
+
+    let vehicle_100_vertices: Vec<f32> = vec![
+        0.021, 0.0, 
+         -0.008, -0.008,
+        -0.008, 0.008,
+    ];
+
+
+    let torpedo_050_vertices: Vec<f32> = vec![
+        0.012, 0.0,
+        -0.007, -0.007, 
+        -0.007, 0.007, 
+    ];
+
+    let torpedo_100_vertices: Vec<f32> = vec![
+        0.007, 0.0,
+        -0.0038, -0.0038, 
+        -0.0038, 0.0038, 
+    ];
+
+    let vehicle_100_vertex_buffer = gl.create_buffer().unwrap();
+    let vehicle_100_js_vertices = js_sys::Float32Array::from(vehicle_100_vertices.as_slice());
+    let torpedo_100_vertex_buffer = gl.create_buffer().unwrap();
+    let torpedo_100_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
+    let time_location = gl.get_uniform_location(&vehicle_100_shader_program, "u_time");
+    let v_200_pos_deltas_loc = gl.get_uniform_location(&vehicle_100_shader_program, "pos_deltas");
+    let v_200_vifo_theta_loc = gl.get_uniform_location(&vehicle_100_shader_program, "vifo_theta");
+    let t_200_pos_deltas_loc = gl.get_uniform_location(&torpedo_100_shader_program, "pos_deltas");
+    let t_200_vifo_theta_loc = gl.get_uniform_location(&torpedo_100_shader_program, "vifo_theta");
+
+    // will probably return these locations.
+
 }
 
 fn set_player_one_events
@@ -277,8 +328,52 @@ fn set_player_one_events
         .unwrap();
     keypress_cb.forget();
 
+}
+
+fn draw_players
+// <'a>
+(
+    gl: Arc<GL>,
+    game_state: Arc<Mutex<GameState>>,
+    vertex_buffer: Arc<WebGlBuffer>,
+    js_vertices: Arc<js_sys::Float32Array>,
+    shader_program: Arc<web_sys::WebGlProgram>,
+    // vertices_position: Arc<>,
+)
+{
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vertex_buffer));
+    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &js_vertices, GL::STATIC_DRAW);
+    let player_vertices_position = gl.get_attrib_location(&shader_program, "a_position") as u32;
+    let player_vertices_position = gl.get_attrib_location(&shader_program, "a_position") as u32;
+    gl.vertex_attrib_pointer_with_i32(player_vertices_position, 2, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(player_vertices_position);
+
+    gl.use_program(Some(&shader_program));
+    gl.clear_color(0.99, 0.99, 0.99, 1.0);
+    gl.clear(GL::COLOR_BUFFER_BIT);
+
+    gl.use_program(Some(&shader_program));
+    let time_location = gl.get_uniform_location(&shader_program, "u_time");
+    gl.uniform1f(time_location.as_ref(), 0.4 as f32);
+
+    // gl.uniform2f(v_200_pos_deltas_loc.as_ref(), new_pos_dx, new_pos_dy);
+    // gl.uniform1f(v_200_vifo_theta_loc.as_ref(), alias_v_200.borrow().vifo_theta.0);
+    // gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
 }
+
+fn update_game_state
+<'a>
+(
+    time_delta: u128,
+    game_state: Arc<Mutex<GameState>>,
+)
+-> Result<Arc<Mutex<GameState>>, &'a str>
+{
+
+    Ok(game_state)
+}
+
 
 fn create_game_state
 <'a>
@@ -354,3 +449,47 @@ struct Vehicle_100 {
     velocity_dx: f32,
     velocity_dy: f32, 
 }
+
+// fn setup_vertex_buffers
+// (
+//     gl: Arc<GL>,
+// )
+// {
+
+//     let vehicle_050_vertices: Vec<f32> = vec![
+//         0.034, 0.0, 
+//          -0.011, -0.011,
+//         -0.011, 0.011,
+//     ];
+
+//     let vehicle_100_vertices: Vec<f32> = vec![
+//         0.021, 0.0, 
+//          -0.008, -0.008,
+//         -0.008, 0.008,
+//     ];
+
+
+//     let torpedo_050_vertices: Vec<f32> = vec![
+//         0.012, 0.0,
+//         -0.007, -0.007, 
+//         -0.007, 0.007, 
+//     ];
+
+//     let torpedo_100_vertices: Vec<f32> = vec![
+//         0.007, 0.0,
+//         -0.0038, -0.0038, 
+//         -0.0038, 0.0038, 
+//     ];
+
+//     let vehicle_100_vertex_buffer = gl.create_buffer().unwrap();
+//     let vehicle_100_js_vertices = js_sys::Float32Array::from(vehicle_100_vertices.as_slice());
+//     let torpedo_100_vertex_buffer = gl.create_buffer().unwrap();
+//     let torpedo_100_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
+//     let time_location = gl.get_uniform_location(&vehicle_100_shader_program, "u_time");
+//     let v_200_pos_deltas_loc = gl.get_uniform_location(&vehicle_100_shader_program, "pos_deltas");
+//     let v_200_vifo_theta_loc = gl.get_uniform_location(&vehicle_100_shader_program, "vifo_theta");
+//     let t_200_pos_deltas_loc = gl.get_uniform_location(&torpedo_100_shader_program, "pos_deltas");
+//     let t_200_vifo_theta_loc = gl.get_uniform_location(&torpedo_100_shader_program, "vifo_theta");
+
+
+// }
