@@ -549,7 +549,7 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
 )
 -> Result<Arc<Mutex<GameState>>, &'a str>
 {
-    let collisions_map : Arc<Mutex<HashMap<&str, Arc<Mutex<CollisionSpace>>>>> = Arc::new(Mutex::new(HashMap::new()));
+    let mut collisions_map : HashMap<&str, CollisionSpace> = HashMap::new();
 
     let delta_scalar = (time_delta as f32) * 0.001;
     let old_pos_dx = game_state.lock().unwrap().player_one.lock().unwrap().position_dx;
@@ -574,18 +574,41 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
     game_state.lock().unwrap().player_one.lock().unwrap().position_dx = new_pos_dx;
     game_state.lock().unwrap().player_one.lock().unwrap().position_dy = new_pos_dy;
 
+
+    // let mut key: Option<&str> = None;
+
     for i in -10..10 {
         for j in -10..10 {
             let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
             let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
-            let key: &str = &[&(base_dx).to_string(), ":", &(base_dy).to_string()].concat();
-            if collisions_map.lock().unwrap().contains_key(key) {
-                collisions_map.lock().unwrap()[key].lock().unwrap().0 = true;
-            } else {
-                // let tuple : Arc<Mutex<CollisionSpace>> = (true, false, Arc::new(Mutex::new(vec![])));
-                let tuple : Arc<Mutex<CollisionSpace>> = Arc::new(Mutex::new((true, false, vec![])));
-                collisions_map.lock().unwrap().clone().insert(key, tuple);
-            }
+
+            let s_key : String = [base_dx.to_string(), String::from(":"), base_dy.to_string()].concat();
+
+            if collisions_map.contains_key(&s_key as &str) {
+                let (k, mut tuple) = collisions_map.remove_entry(&s_key as &str).unwrap();
+                tuple.0 = true;
+                collisions_map.insert(k, tuple);
+            } 
+
+            // if collisions_map.contains_key(key.unwrap()) {
+            //     // let ref mut d = collisions_map[key];
+            //     // d.0 = true;
+            //     // let mut tuple = collisions_map.remove(key).unwrap();
+            //     // tuple.0 = true;
+            //     // collisions_map.insert(key, tuple);
+            //     // let &(mut tuple) = collisions_map[key];
+            //     // tuple.0 = true;
+            //     // collisions_map.insert(*key, tuple);
+            //     // log!("contains");
+            // } else {
+            //     // log!("elsed");
+            //     // let tuple : Arc<Mutex<CollisionSpace>> = (true, false, Arc::new(Mutex::new(vec![])));
+            //     // let tuple : Arc<Mutex<CollisionSpace>> = Arc::new(Mutex::new((true, false, vec![])));
+            //     // let tuple: CollisionSpace = (true, false, vec![]);
+            //     // collisions_map.insert(key, tuple);
+            //     // log!("inserted?", collisions_map.len());
+                
+            // }
         }
     }    
     
@@ -612,25 +635,23 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
     game_state.lock().unwrap().player_two.lock().unwrap().position_dy = new_pos_dy;
 
 
-    for i in -10..10 {
-        for j in -10..10 {
-            let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
-            let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
-            let key: &str = &[&(base_dx).to_string(), ":", &(base_dy).to_string()].concat();
-            if collisions_map.lock().unwrap().contains_key(key) {
-                collisions_map.lock().unwrap()[key].lock().unwrap().1 = true;
-            } else {
-                let tuple : Arc<Mutex<CollisionSpace>> = Arc::new(Mutex::new((false, true, vec![])));
-                collisions_map.lock().unwrap().clone().insert(key, tuple);
-            }
-        }
-    } 
-
-  
+    // for i in -10..10 {
+    //     for j in -10..10 {
+    //         let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
+    //         let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
+    //         let key: &str = &[&(base_dx).to_string(), ":", &(base_dy).to_string()].concat();
+    //         if collisions_map.lock().unwrap().contains_key(key) {
+    //             // log!("contains");
+    //             collisions_map.lock().unwrap()[key].lock().unwrap().1 = true;
+    //         } else {
+    //             let tuple : Arc<Mutex<CollisionSpace>> = Arc::new(Mutex::new((false, true, vec![])));
+    //             collisions_map.lock().unwrap().clone().insert(key, tuple);
+    //         }
+    //     }
+    // } 
 
     let mut removals: Vec<usize> = vec![];
     
-
     for (idx, torp) in game_state.lock().unwrap()
     .torps_in_flight.lock().unwrap()
     .iter().enumerate() {
@@ -647,19 +668,20 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
             torp.lock().unwrap().position_dx = new_pos_dx;
             torp.lock().unwrap().position_dy = new_pos_dy;
 
-            for i in -5..5 {
-                for j in -5..5 {
-                    let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
-                    let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
-                    let key: &str = &[&(base_dx).to_string(), ":", &(base_dy).to_string()].concat();
-                    if collisions_map.lock().unwrap().contains_key(key) {
-                        collisions_map.lock().unwrap()[key].lock().unwrap().2.push(idx);
-                    } else {
-                        let tuple : Arc<Mutex<CollisionSpace>> = Arc::new(Mutex::new((true, false, vec![idx])));
-                        collisions_map.lock().unwrap().clone().insert(key, tuple);
-                    }
-                }
-            }
+            // for i in -5..5 {
+            //     for j in -5..5 {
+            //         let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
+            //         let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
+            //         let key: &str = &[&(base_dx).to_string(), ":", &(base_dy).to_string()].concat();
+            //         if collisions_map.lock().unwrap().contains_key(key) {
+            //             log!("contains");
+            //             collisions_map.lock().unwrap()[key].lock().unwrap().2.push(idx);
+            //         } else {
+            //             let tuple : Arc<Mutex<CollisionSpace>> = Arc::new(Mutex::new((true, false, vec![idx])));
+            //             collisions_map.lock().unwrap().clone().insert(key, tuple);
+            //         }
+            //     }
+            // }
         }
     }
 
@@ -671,15 +693,8 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
 
 
 
-    // Look for collisions
-    // As we iterate through the two players and the torps_in_flight, we can populate a dictioonary, where the
-    // keys are hashed positions and the values are other ships or torpedos.  But what if there are multiple objects 
-    // that collide to the same point at the same instant?
 
-
-    // We need to clear the collisions map now.
-    // game_state.clone().lock().unwrap().collisions_map = Arc::new(Mutex::new(HashMap::new()));
-
+    collisions_map.clear();
 
     Ok(game_state)
 }
