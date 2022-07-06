@@ -195,7 +195,6 @@ fn render_game
             torp_vifo_theta_loc.clone(),
         );
 
-        
         request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
     }) as Box<dyn FnMut()>));
 
@@ -208,7 +207,6 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
         .request_animation_frame(f.as_ref().unchecked_ref())
         .expect("should register `requestAnimationFrame` OK");
 }
-
 
 fn setup_torp_shaders
 <'a>
@@ -364,20 +362,20 @@ fn set_player_two_events
     186 => game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta += Rad(0.1),
     32 => {
         let ticv_scalar = 0.34;
-        let ticv_theta = game_state.lock().unwrap().player_one.lock().unwrap().vifo_theta;
+        let ticv_theta = game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta;
         // let torpedo_own_impulse_velocity_dx =
         let ticv_dx = Rad::cos(ticv_theta) * ticv_scalar;
         let ticv_dy = Rad::sin(ticv_theta) * ticv_scalar;
         // let torpedo_summed_velocity_dx =
-        let tsv_dx = ticv_dx + game_state.lock().unwrap().player_one.lock().unwrap().velocity_dx;
-        let tsv_dy = ticv_dy + game_state.lock().unwrap().player_one.lock().unwrap().velocity_dy;
+        let tsv_dx = ticv_dx + game_state.lock().unwrap().player_two.lock().unwrap().velocity_dx;
+        let tsv_dy = ticv_dy + game_state.lock().unwrap().player_two.lock().unwrap().velocity_dy;
         // let torpedo_summed_velocity_theta = Rad::atan(tsv_dy / tsv_dx);
         let tsv_theta = Rad::atan(tsv_dy / tsv_dx);
         let tsv_scalar = tsv_dx / Rad::cos(tsv_theta);
         let tsv_scalar_2 = tsv_dy / Rad::sin(tsv_theta);
         // assert tsv_scalar == tsv_scalar_2;
-        let t_dx = game_state.lock().unwrap().player_one.lock().unwrap().position_dx;
-        let t_dy = game_state.lock().unwrap().player_one.lock().unwrap().position_dy;
+        let t_dx = game_state.lock().unwrap().player_two.lock().unwrap().position_dx;
+        let t_dy = game_state.lock().unwrap().player_two.lock().unwrap().position_dy;
         let mut torpedo = Vehicle_100 {
             position_dx:  t_dx,
             position_dy: t_dy,
@@ -387,7 +385,7 @@ fn set_player_two_events
             velocity_dx: tsv_dx,
             velocity_dy: tsv_dy,
         };
-        game_state.lock().unwrap().torps_in_flight.lock().unwrap().push(torpedo);
+        game_state.lock().unwrap().torps_in_flight.lock().unwrap().push(Arc::new(Mutex::new(torpedo)));
     },
             _ => (),
         }
@@ -454,7 +452,7 @@ fn set_player_one_events
                     velocity_dx: tsv_dx,
                     velocity_dy: tsv_dy,
                 };
-                game_state.lock().unwrap().torps_in_flight.lock().unwrap().push(torpedo);
+                game_state.lock().unwrap().torps_in_flight.lock().unwrap().push(Arc::new(Mutex::new(torpedo)));
             },
             _ => (),
         }
@@ -495,9 +493,9 @@ fn draw_torps
     for (idx, torp) in game_state.lock().unwrap()
     .torps_in_flight.lock().unwrap()
     .iter().enumerate() {
-        let new_pos_dx = torp.position_dx;
-        let new_pos_dy = torp.position_dy;
-        let torp_vifo_theta = torp.vifo_theta;
+        let new_pos_dx = torp.lock().unwrap().position_dx;
+        let new_pos_dy = torp.lock().unwrap().position_dy;
+        let torp_vifo_theta = torp.lock().unwrap().vifo_theta;
         gl.uniform2f(Some(&torp_pos_deltas_loc), new_pos_dx, new_pos_dy);
         gl.uniform1f(Some(&torp_vifo_theta_loc), torp_vifo_theta.0);
         gl.draw_arrays(GL::TRIANGLES, 0, 6);
@@ -601,6 +599,20 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
     game_state.lock().unwrap().player_two.lock().unwrap().position_dx = new_pos_dx;
     game_state.lock().unwrap().player_two.lock().unwrap().position_dy = new_pos_dy;
 
+    for (idx, torp) in game_state.lock().unwrap()
+    .torps_in_flight.lock().unwrap()
+    .iter().enumerate() {
+        let pos_dx = torp.lock().unwrap().position_dx;
+        let pos_dy = torp.lock().unwrap().position_dy;
+        let v_dx = torp.lock().unwrap().velocity_dx;
+        let v_dy = torp.lock().unwrap().velocity_dy;
+
+        torp.lock().unwrap().position_dx = pos_dx + (delta_scalar * v_dx);
+        torp.lock().unwrap().position_dy = pos_dy + (delta_scalar * v_dy);
+
+    }
+
+
     Ok(game_state)
 }
 
@@ -654,7 +666,7 @@ fn create_game_state
 struct GameState {
     player_one: Arc<Mutex<Vehicle_100>>,
     player_two:  Arc<Mutex<Vehicle_100>>,
-    torps_in_flight: Arc<Mutex<Vec<Vehicle_100>>>,
+    torps_in_flight: Arc<Mutex<Vec<Arc<Mutex<Vehicle_100>>>>>,
     start_time: Arc<Instant>,
     elapsed_time: Arc<Mutex<u128>>,
     game_over: Arc<Mutex<bool>>,
