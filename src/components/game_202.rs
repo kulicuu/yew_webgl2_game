@@ -514,8 +514,7 @@ struct Vehicle_100 {
     velocity_scalar: f32,
     // redundant alternate description of velocity, cartesian
     velocity_dx: f32,
-    velocity_dy: f32,
-    
+    velocity_dy: f32, 
 }
 
 
@@ -537,40 +536,40 @@ struct Vehicle_100 {
 // {
 
 
-//     let player_one = Arc::new(Mutex::new(Vehicle_100 {
-//         position_dx: 0.3,
-//         position_dy: 0.3,
-//         vifo_theta: Rad(0.3),
-//         velocity_theta: Rad(0.3),
-//         velocity_scalar: 0.0,
-//         velocity_dx: 0.0,
-//         velocity_dy: 0.0,
-//     }));
+    // let player_one = Arc::new(Mutex::new(Vehicle_100 {
+    //     position_dx: 0.3,
+    //     position_dy: 0.3,
+    //     vifo_theta: Rad(0.3),
+    //     velocity_theta: Rad(0.3),
+    //     velocity_scalar: 0.0,
+    //     velocity_dx: 0.0,
+    //     velocity_dy: 0.0,
+    // }));
 
-//     let player_two = Arc::new(Mutex::new(Vehicle_100 {
-//         position_dx: -0.3,
-//         position_dy: -0.3,
-//         vifo_theta: Rad(-0.3),
-//         velocity_theta: Rad(-0.3),
-//         velocity_scalar: 0.0,
-//         velocity_dx: 0.0,
-//         velocity_dy: 0.0,
-//     }));
+    // let player_two = Arc::new(Mutex::new(Vehicle_100 {
+    //     position_dx: -0.3,
+    //     position_dy: -0.3,
+    //     vifo_theta: Rad(-0.3),
+    //     velocity_theta: Rad(-0.3),
+    //     velocity_scalar: 0.0,
+    //     velocity_dx: 0.0,
+    //     velocity_dy: 0.0,
+    // }));
 
-//     let torps_in_flight = Arc::new(Mutex::new(vec![]));
-//     let collisions = Arc::new(Mutex::new(vec![]));
+    // let torps_in_flight = Arc::new(Mutex::new(vec![]));
+    // let collisions = Arc::new(Mutex::new(vec![]));
 
-//     let game_state = GameInnerState {
-//         player_one: v_200,
-//         player_two: v_300,
-//         torps_in_flight: torps_in_flight,
-//         start_time: Arc::new(Instant::now()),
-//         elapsed_time: Arc::new(Mutex::new(0)),
-//         game_over: Arc::new(Mutex::new(false)),
-//         collisions: collisions,
-//         mode: Arc::new(mode),
-//         result: Arc::new(Mutex::new(0)),
-//     };
+    // let game_state = GameInnerState {
+    //     player_one: v_200,
+    //     player_two: v_300,
+    //     torps_in_flight: torps_in_flight,
+    //     start_time: Arc::new(Instant::now()),
+    //     elapsed_time: Arc::new(Mutex::new(0)),
+    //     game_over: Arc::new(Mutex::new(false)),
+    //     collisions: collisions,
+    //     mode: Arc::new(mode),
+    //     result: Arc::new(Mutex::new(0)),
+    // };
 
 //     // Mode 0 is two player local, so we'll setup both event listener sets.
 
