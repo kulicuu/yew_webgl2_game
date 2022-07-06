@@ -21,6 +21,7 @@ use std::time::*;
 // use std::time::{Duration, Instant};
 use std::convert::{TryInto};
 use std::ops::{Add, Sub, AddAssign, SubAssign};
+use std::collections::HashMap;
 
 use gloo_console::log;
 use std::f32::consts::PI;
@@ -553,6 +554,8 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
 )
 -> Result<Arc<Mutex<GameState>>, &'a str>
 {
+
+    let mut colls_hm : HashMap<&'static str, String> = HashMap::new();
     let delta_scalar = (time_delta as f32) * 0.001;
 
     let old_pos_dx = game_state.lock().unwrap().player_one.lock().unwrap().position_dx;
@@ -574,6 +577,13 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
     if new_pos_dy > 1.0 {
         new_pos_dy -= 2.0;
     }
+
+    // add elements to hashmap.
+    // The key will be an encoding of the pixel of square space at whatever resolution we want.
+    // The value will be a tuple with three elements.  The first two elements represent player_one and player_two,
+    // Those can be boolean, signifying presence of those vehicles at that space.
+    // The third element will be a vector, containing any torpedos and all in that space.
+
     game_state.lock().unwrap().player_one.lock().unwrap().position_dx = new_pos_dx;
     game_state.lock().unwrap().player_one.lock().unwrap().position_dy = new_pos_dy;
 
@@ -606,16 +616,19 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
         let pos_dy = torp.lock().unwrap().position_dy;
         let v_dx = torp.lock().unwrap().velocity_dx;
         let v_dy = torp.lock().unwrap().velocity_dy;
-
         torp.lock().unwrap().position_dx = pos_dx + (delta_scalar * v_dx);
         torp.lock().unwrap().position_dy = pos_dy + (delta_scalar * v_dy);
-
     }
+
+    // Look for collisions
+    // As we iterate through the two players and the torps_in_flight, we can populate a dictioonary, where the
+    // keys are hashed positions and the values are other ships or torpedos.  But what if there are multiple objects 
+    // that collide to the same point at the same instant?
+
 
 
     Ok(game_state)
 }
-
 
 fn create_game_state
 <'a>
@@ -645,7 +658,9 @@ fn create_game_state
     }));
 
     let torps_in_flight = Arc::new(Mutex::new(vec![]));
-    let collisions = Arc::new(Mutex::new(vec![]));
+    let collisions_two : Arc<Mutex<HashMap<&'static str, CollisionSpace>>> = Arc::new(Mutex::new(HashMap::new()));
+
+    // let collisions : Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(vec![]));
 
     let game_state = GameState {
         player_one: player_one,
@@ -654,23 +669,52 @@ fn create_game_state
         start_time: Arc::new(Instant::now()),
         elapsed_time: Arc::new(Mutex::new(0)),
         game_over: Arc::new(Mutex::new(false)),
-        collisions: collisions,
+        collisions_map: collisions_two,
         mode: Arc::new(mode),
         result: Arc::new(Mutex::new(0)),
     };
 
-    Ok( Arc::new(Mutex::new(game_state)))
+    // let game_state = GameStateOld {
+    //     player_one: player_one,
+    //     player_two: player_two,
+    //     torps_in_flight: torps_in_flight,
+    //     start_time: Arc::new(Instant::now()),
+    //     elapsed_time: Arc::new(Mutex::new(0)),
+    //     game_over: Arc::new(Mutex::new(false)),
+    //     collisions: collisions,
+    //     mode: Arc::new(mode),
+    //     result: Arc::new(Mutex::new(0)),
+    // };
+
+    Ok(Arc::new(Mutex::new(game_state)))
 }
 
 
-struct GameState {
+type CollisionSpace = (bool, bool, Vec<usize>);
+
+// struct GameStateOld {
+//     player_one: Arc<Mutex<Vehicle_100>>,
+//     player_two:  Arc<Mutex<Vehicle_100>>,
+//     torps_in_flight: Arc<Mutex<Vec<Arc<Mutex<Vehicle_100>>>>>,
+//     start_time: Arc<Instant>,
+//     elapsed_time: Arc<Mutex<u128>>,
+//     game_over: Arc<Mutex<bool>>,
+//     collisions: Arc<Mutex<Vec<Vehicle_100>>>, 
+//     // model an explosion around a vector sum of the collided vehicles, with extra effects. covering torpedo collisions
+//     // This would be a good place to use Rust traits.
+//     result: Arc<Mutex<u8>>,
+//     mode: Arc<u8>, // 1 player vs computer, 2 player local, 2 player network
+// }
+
+struct GameState 
+{
     player_one: Arc<Mutex<Vehicle_100>>,
     player_two:  Arc<Mutex<Vehicle_100>>,
     torps_in_flight: Arc<Mutex<Vec<Arc<Mutex<Vehicle_100>>>>>,
     start_time: Arc<Instant>,
     elapsed_time: Arc<Mutex<u128>>,
     game_over: Arc<Mutex<bool>>,
-    collisions: Arc<Mutex<Vec<Vehicle_100>>>, 
+    collisions_map: Arc<Mutex<HashMap<&'static str, CollisionSpace>>>,
     // model an explosion around a vector sum of the collided vehicles, with extra effects. covering torpedo collisions
     // This would be a good place to use Rust traits.
     result: Arc<Mutex<u8>>,
