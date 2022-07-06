@@ -98,26 +98,21 @@ pub struct GameThree {
 impl Component for GameThree {
     type Message = Msg;
     type Properties = ();
-
     fn create(_ctx: &Context<Self>) -> Self {
         let node_ref = Arc::new(NodeRef::default());
         Self {
             node_ref: node_ref,
         }
     }
-
     fn view(&self, _ctx: &Context<Self>) -> Html {
  
         html! {
             <canvas width=2000 height=2000 ref={(*self.node_ref).clone()} />
         }
     }
-
-    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
-        
+    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {   
         let alt_ref = (*self.node_ref).clone();
         render_game(alt_ref);
-
     }
 }
 
@@ -147,6 +142,16 @@ fn render_game
         time_location,
     ) = setup_shaders(gl.clone()).unwrap();
 
+    let (
+        torp_vertex_buffer,
+        torp_js_vertices,
+        torp_shader_program,
+        torp_vertices_position,
+        torp_pos_deltas_loc,
+        torp_vifo_theta_loc,
+        time_location_2,
+    ) = setup_torp_shaders(gl.clone()).unwrap();
+
     let game_state = create_game_state().unwrap();
 
     set_player_one_events(game_state.clone());
@@ -162,6 +167,9 @@ fn render_game
         let time_delta = now - cursor;
         cursor = now;
 
+        gl.clear_color(0.99, 0.99, 0.99, 1.0);
+        gl.clear(GL::COLOR_BUFFER_BIT);
+
         let game_state = update_game_state(time_delta, game_state.clone()).unwrap();
         draw_players(
             gl.clone(),
@@ -175,6 +183,17 @@ fn render_game
             player_vifo_theta_loc.clone(),
         );
 
+        draw_torps(
+            gl.clone(),
+            game_state.clone(),
+            torp_vertex_buffer.clone(),
+            torp_js_vertices.clone(),
+            torp_shader_program.clone(),
+            torp_vertices_position.clone(),
+            time_location_2.clone(),
+            torp_pos_deltas_loc.clone(),
+            torp_vifo_theta_loc.clone(),
+        );
 
         
         request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
@@ -188,6 +207,71 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
     window().unwrap()
         .request_animation_frame(f.as_ref().unchecked_ref())
         .expect("should register `requestAnimationFrame` OK");
+}
+
+
+fn setup_torp_shaders
+<'a>
+(
+    gl: Arc<GL>,
+)
+-> Result<(
+    Arc<WebGlBuffer>, // torp vertex buffer
+    Arc<js_sys::Float32Array>, // torp_js_vertices,
+    Arc<web_sys::WebGlProgram>, // torp_shader_program,
+    Arc<u32>, // torp_vertices_position
+    Arc<WebGlUniformLocation>, //torp_pos_deltas_loc
+    Arc<WebGlUniformLocation>, // torp_vifo_theta_loc
+    Arc::<WebGlUniformLocation>, // time_location
+), &'a str>
+{
+    let torpedo_100_vertices: Vec<f32> = vec![
+        0.007, 0.0,
+        -0.0038, -0.0038, 
+        -0.0038, 0.0038, 
+    ];
+
+    let torpedo_100_vert_code = include_str!("../shaders/torpedo_100.vert");
+    let torpedo_100_vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
+    gl.shader_source(&torpedo_100_vert_shader, torpedo_100_vert_code);
+    gl.compile_shader(&torpedo_100_vert_shader);
+    let torpedo_100_vert_shader_log = gl.get_shader_info_log(&torpedo_100_vert_shader);
+    log!("torpedo_100 shader log: ", torpedo_100_vert_shader_log);
+
+    let frag_code = include_str!("../shaders/basic.frag");
+    let frag_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
+    gl.shader_source(&frag_shader, frag_code);
+    gl.compile_shader(&frag_shader);
+    let basic_frag_shader_log = gl.get_shader_info_log(&frag_shader);
+
+    let torp_shader_program = gl.create_program().unwrap();
+    gl.attach_shader(&torp_shader_program, &torpedo_100_vert_shader);
+    gl.attach_shader(&torp_shader_program, &frag_shader);
+    gl.link_program(&torp_shader_program);
+
+    let time_location = gl.get_uniform_location(&torp_shader_program, "u_time");
+
+    let torp_vertex_buffer = gl.create_buffer().unwrap();
+    let torp_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
+    let torp_pos_deltas_loc = gl.get_uniform_location(&torp_shader_program, "pos_deltas");
+    let torp_vifo_theta_loc =  gl.get_uniform_location(&torp_shader_program, "vifo_theta");
+    let torp_vertices_position = gl.get_attrib_location(&torp_shader_program, "b_position") as u32;
+
+    let frag_code = include_str!("../shaders/basic.frag");
+    let frag_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
+    gl.shader_source(&frag_shader, frag_code);
+    gl.compile_shader(&frag_shader);
+    let basic_frag_shader_log = gl.get_shader_info_log(&frag_shader);
+
+    Ok((
+        Arc::new(torp_vertex_buffer),
+        Arc::new(torp_js_vertices),
+        Arc::new(torp_shader_program),
+        Arc::new(torp_vertices_position),
+        Arc::new(torp_pos_deltas_loc.unwrap()),
+        Arc::new(torp_vifo_theta_loc.unwrap()),
+        Arc::new(time_location.unwrap()),
+    ))
 }
 
 fn setup_shaders
@@ -205,23 +289,19 @@ fn setup_shaders
     Arc::<WebGlUniformLocation>, // time_location
 ), &'a str>
 {
+    let vehicle_100_vertices: Vec<f32> = vec![
+        0.021, 0.0, 
+         -0.008, -0.008,
+        -0.008, 0.008,
+    ];
+
     let vehicle_100_vert_code = include_str!("../shaders/vehicle_100.vert");
-    let torpedo_100_vert_code = include_str!("../shaders/torpedo_100.vert");
     let vehicle_100_vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
-    let torpedo_100_vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
-    
     gl.shader_source(&vehicle_100_vert_shader, vehicle_100_vert_code);
-    gl.shader_source(&torpedo_100_vert_shader, torpedo_100_vert_code);
-
     gl.compile_shader(&vehicle_100_vert_shader);
-    gl.compile_shader(&torpedo_100_vert_shader);
-
     let vehicle_100_vert_shader_log = gl.get_shader_info_log(&vehicle_100_vert_shader);
-    let torpedo_100_vert_shader_log = gl.get_shader_info_log(&torpedo_100_vert_shader);
-    
     log!("vehicle_100 shader log: ", vehicle_100_vert_shader_log);
-    log!("torpedo_100 shader log: ", torpedo_100_vert_shader_log);
-
+    
     let frag_code = include_str!("../shaders/basic.frag");
     let frag_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
     gl.shader_source(&frag_shader, frag_code);
@@ -231,37 +311,16 @@ fn setup_shaders
     let player_shader_program = gl.create_program().unwrap();
     gl.attach_shader(&player_shader_program, &vehicle_100_vert_shader);
     gl.attach_shader(&player_shader_program, &frag_shader);
-
-
-    let torpedo_100_shader_program = gl.create_program().unwrap();
-    gl.attach_shader(&torpedo_100_shader_program, &torpedo_100_vert_shader);
-    gl.attach_shader(&torpedo_100_shader_program, &frag_shader);
-
     gl.link_program(&player_shader_program);
-    // gl.link_program(&player_shader_program);
-
-    let vehicle_100_vertices: Vec<f32> = vec![
-        0.021, 0.0, 
-         -0.008, -0.008,
-        -0.008, 0.008,
-    ];
-
-    let torpedo_100_vertices: Vec<f32> = vec![
-        0.007, 0.0,
-        -0.0038, -0.0038, 
-        -0.0038, 0.0038, 
-    ];
+    
+    let time_location = gl.get_uniform_location(&player_shader_program, "u_time");
 
     let player_vertex_buffer = gl.create_buffer().unwrap();
     let player_js_vertices = js_sys::Float32Array::from(vehicle_100_vertices.as_slice());
-    let torpedo_100_vertex_buffer = gl.create_buffer().unwrap();
-    let torpedo_100_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
-    let time_location = gl.get_uniform_location(&player_shader_program, "u_time");
-
     let player_pos_deltas_loc = gl.get_uniform_location(&player_shader_program, "pos_deltas");
     let player_vifo_theta_loc =  gl.get_uniform_location(&player_shader_program, "vifo_theta");
     let player_vertices_position = gl.get_attrib_location(&player_shader_program, "a_position") as u32;
-
+    
     Ok((
         Arc::new(player_vertex_buffer),
         Arc::new(player_js_vertices),
@@ -279,27 +338,19 @@ fn set_player_two_events
     game_state: Arc<Mutex<GameState>>,
 )
 {
-
-    // why not just use the document exposed by web-sys?
     let document = web_sys::window().unwrap().document().unwrap();
-
     let et_keys : EventTarget = document.into();
-
     let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
-        log!("keypress {#:?}", event.key_code());
         match event.key_code() {
     74 => game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta -= Rad(0.1),
     79 => {
         let vniv_scalar = 0.08;
         let vniv_theta = game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta;
-
         let vniv_dx = Rad::cos(vniv_theta) * vniv_scalar;
         let vniv_dy = Rad::sin(vniv_theta) * vniv_scalar;
-        
         // let vehicle_new_summed_velocity_dx = 
         let vnsv_dx = vniv_dx + game_state.lock().unwrap().player_two.lock().unwrap().velocity_dx;
         let vnsv_dy = vniv_dy + game_state.lock().unwrap().player_two.lock().unwrap().velocity_dy;
-
         let vnsv_theta = Rad::atan(vnsv_dy / vnsv_dx);
         // let vnsv_scalar = (vnsv_dx as f32) / (Rad::cos(Rad(vnsv_theta)) as f32);
         let vnsv_scalar = vnsv_dx / Rad::cos(vnsv_theta);
@@ -309,7 +360,6 @@ fn set_player_two_events
         game_state.lock().unwrap().player_two.lock().unwrap().velocity_dy = vnsv_dy;
         game_state.lock().unwrap().player_two.lock().unwrap().velocity_theta = vnsv_theta.into();
         game_state.lock().unwrap().player_two.lock().unwrap().velocity_scalar = vnsv_scalar;
-
     },
     186 => game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta += Rad(0.1),
     32 => {
@@ -355,14 +405,9 @@ fn set_player_one_events
     game_state: Arc<Mutex<GameState>>,
 )
 {
-
-    // why not just use the document exposed by web-sys?
     let document = web_sys::window().unwrap().document().unwrap();
-
     let et_keys : EventTarget = document.into();
-
     let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
-        // log!("keypress {#:?}", event.key_code());
         match event.key_code() {
             39 => game_state.lock().unwrap().player_one.lock().unwrap().vifo_theta -= Rad(0.1),
             38 => {
@@ -410,7 +455,6 @@ fn set_player_one_events
                     velocity_dy: tsv_dy,
                 };
                 game_state.lock().unwrap().torps_in_flight.lock().unwrap().push(torpedo);
-
             },
             _ => (),
         }
@@ -420,6 +464,45 @@ fn set_player_one_events
         .add_event_listener_with_callback("keydown", keypress_cb.as_ref().unchecked_ref())
         .unwrap();
     keypress_cb.forget();
+}
+
+fn draw_torps
+(
+    gl: Arc<GL>,
+    game_state: Arc<Mutex<GameState>>,
+    torp_vertex_buffer: Arc<WebGlBuffer>,
+    torp_js_vertices: Arc<js_sys::Float32Array>,
+    shader_program: Arc<web_sys::WebGlProgram>,
+    torp_vertices_position: Arc<u32>,
+    time_location: Arc<WebGlUniformLocation>,
+    torp_pos_deltas_loc: Arc<WebGlUniformLocation>,
+    torp_vifo_theta_loc: Arc<WebGlUniformLocation>,
+)
+{
+    gl.use_program(Some(&shader_program));
+
+    let mut removals: Vec<usize> = vec![];
+
+
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&torp_vertex_buffer));
+    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &torp_js_vertices, GL::STATIC_DRAW);
+    gl.vertex_attrib_pointer_with_i32(*torp_vertices_position, 2, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(*torp_vertices_position);
+
+    gl.use_program(Some(&shader_program));
+    gl.uniform1f(Some(&time_location), 0.4 as f32);
+
+    for (idx, torp) in game_state.lock().unwrap()
+    .torps_in_flight.lock().unwrap()
+    .iter().enumerate() {
+        let new_pos_dx = torp.position_dx;
+        let new_pos_dy = torp.position_dy;
+        let torp_vifo_theta = torp.vifo_theta;
+        gl.uniform2f(Some(&torp_pos_deltas_loc), new_pos_dx, new_pos_dy);
+        gl.uniform1f(Some(&torp_vifo_theta_loc), torp_vifo_theta.0);
+        gl.draw_arrays(GL::TRIANGLES, 0, 6);
+
+    }
 }
 
 fn draw_players
@@ -439,11 +522,7 @@ fn draw_players
     gl.bind_buffer(GL::ARRAY_BUFFER, Some(&player_vertex_buffer));
     gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &player_js_vertices, GL::STATIC_DRAW);
     gl.vertex_attrib_pointer_with_i32(*player_vertices_position, 2, GL::FLOAT, false, 0, 0);
-    gl.enable_vertex_attrib_array(*player_vertices_position as u32);
-
-    gl.use_program(Some(&shader_program));
-    gl.clear_color(0.99, 0.99, 0.99, 1.0);
-    gl.clear(GL::COLOR_BUFFER_BIT);
+    gl.enable_vertex_attrib_array(*player_vertices_position);
 
     gl.use_program(Some(&shader_program));
     gl.uniform1f(Some(&time_location), 0.4 as f32);
