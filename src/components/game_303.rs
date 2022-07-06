@@ -137,7 +137,16 @@ fn render_game
         .unwrap();
     let gl : Arc<GL> = Arc::new(gl);
 
-    setup_shaders(gl.clone());
+    let (
+        player_vertex_buffer,
+        player_js_vertices,
+        player_shader_program,
+        player_vertices_position,
+        player_pos_deltas_loc,
+        player_vifo_theta_loc,
+        time_location,
+    ) = setup_shaders(gl.clone()).unwrap();
+
     let game_state = create_game_state().unwrap();
 
     set_player_one_events(
@@ -155,7 +164,17 @@ fn render_game
         cursor = now;
 
         let game_state = update_game_state(time_delta, game_state.clone()).unwrap();
-
+        draw_players(
+            gl.clone(),
+            game_state.clone(),
+            player_vertex_buffer.clone(),
+            player_js_vertices.clone(),
+            player_shader_program.clone(),
+            player_vertices_position.clone(),
+            time_location.clone(),
+            player_pos_deltas_loc.clone(),
+            player_vifo_theta_loc.clone(),
+        );
 
 
         
@@ -184,6 +203,7 @@ fn setup_shaders
     Arc<u32>, // player_vertices_position
     Arc<WebGlUniformLocation>, //player_pos_deltas_loc
     Arc<WebGlUniformLocation>, //player_vifo_theta_loc
+    Arc::<WebGlUniformLocation>, // time_location
 ), &'a str>
 {
     let vehicle_100_vert_code = include_str!("../shaders/vehicle_100.vert");
@@ -250,6 +270,7 @@ fn setup_shaders
         Arc::new(player_vertices_position),
         Arc::new(player_pos_deltas_loc.unwrap()),
         Arc::new(player_vifo_theta_loc.unwrap()),
+        Arc::new(time_location.unwrap()),
     ))
 }
 
@@ -264,8 +285,6 @@ fn set_player_one_events
     let document = web_sys::window().unwrap().document().unwrap();
 
     let et_keys : EventTarget = document.into();
-
-    
 
     let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
         log!("keypress {#:?}", event.key_code());
@@ -338,17 +357,17 @@ fn draw_players
 (
     gl: Arc<GL>,
     game_state: Arc<Mutex<GameState>>,
-    vertex_buffer: Arc<WebGlBuffer>,
-    js_vertices: Arc<js_sys::Float32Array>,
+    player_vertex_buffer: Arc<WebGlBuffer>,
+    player_js_vertices: Arc<js_sys::Float32Array>,
     shader_program: Arc<web_sys::WebGlProgram>,
     player_vertices_position: Arc<u32>,
     time_location: Arc<WebGlUniformLocation>,
     player_pos_deltas_loc: Arc<WebGlUniformLocation>,
-    vifo_theta_loc: Arc<WebGlUniformLocation>,
+    player_vifo_theta_loc: Arc<WebGlUniformLocation>,
 )
 {
-    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vertex_buffer));
-    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &js_vertices, GL::STATIC_DRAW);
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&player_vertex_buffer));
+    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &player_js_vertices, GL::STATIC_DRAW);
     gl.vertex_attrib_pointer_with_i32(*player_vertices_position, 2, GL::FLOAT, false, 0, 0);
     gl.enable_vertex_attrib_array(*player_vertices_position as u32);
 
@@ -365,7 +384,7 @@ fn draw_players
     gl.uniform2f(Some(&player_pos_deltas_loc), new_pos_dx, new_pos_dy);
     
     let new_vifo_theta = game_state.lock().unwrap().player_one.lock().unwrap().vifo_theta;
-    gl.uniform1f(Some(&vifo_theta_loc), new_vifo_theta.0);
+    gl.uniform1f(Some(&player_vifo_theta_loc), new_vifo_theta.0);
     gl.draw_arrays(GL::TRIANGLES, 0, 6);
 }
 
@@ -377,6 +396,30 @@ fn update_game_state
 )
 -> Result<Arc<Mutex<GameState>>, &'a str>
 {
+    let delta_scalar = (time_delta as f32) * 0.001;
+
+    let old_pos_dx = game_state.lock().unwrap().player_one.lock().unwrap().position_dx;
+    let additional_dx = game_state.lock().unwrap().player_one.lock().unwrap().velocity_dx * (delta_scalar as f32);
+    let mut new_pos_dx = old_pos_dx + additional_dx;
+    if new_pos_dx < -1.0 {
+        new_pos_dx = new_pos_dx + 2.0;
+    }
+    if new_pos_dx > 1.0 {
+        new_pos_dx = new_pos_dx - 2.0;
+    }
+
+    let old_pos_dy = game_state.lock().unwrap().player_one.lock().unwrap().position_dy;
+    let additional_dy = game_state.lock().unwrap().player_one.lock().unwrap().velocity_dy * (delta_scalar as f32);
+    let mut new_pos_dy = old_pos_dy + additional_dy;
+    if new_pos_dy < -1.0 {
+        new_pos_dy += 2.0;
+    }
+    if new_pos_dy > 1.0 {
+        new_pos_dy -= 2.0;
+    }
+    game_state.lock().unwrap().player_one.lock().unwrap().position_dx = new_pos_dx;
+    game_state.lock().unwrap().player_one.lock().unwrap().position_dy = new_pos_dy;
+
 
     Ok(game_state)
 }
