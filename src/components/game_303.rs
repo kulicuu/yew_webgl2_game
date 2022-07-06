@@ -479,10 +479,6 @@ fn draw_torps
 )
 {
     gl.use_program(Some(&shader_program));
-
-    let mut removals: Vec<usize> = vec![];
-
-
     gl.bind_buffer(GL::ARRAY_BUFFER, Some(&torp_vertex_buffer));
     gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &torp_js_vertices, GL::STATIC_DRAW);
     gl.vertex_attrib_pointer_with_i32(*torp_vertices_position, 2, GL::FLOAT, false, 0, 0);
@@ -500,7 +496,6 @@ fn draw_torps
         gl.uniform2f(Some(&torp_pos_deltas_loc), new_pos_dx, new_pos_dy);
         gl.uniform1f(Some(&torp_vifo_theta_loc), torp_vifo_theta.0);
         gl.draw_arrays(GL::TRIANGLES, 0, 6);
-
     }
 }
 
@@ -555,7 +550,7 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
 -> Result<Arc<Mutex<GameState>>, &'a str>
 {
 
-    let mut colls_hm : HashMap<&'static str, String> = HashMap::new();
+
     let delta_scalar = (time_delta as f32) * 0.001;
 
     let old_pos_dx = game_state.lock().unwrap().player_one.lock().unwrap().position_dx;
@@ -587,6 +582,23 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
     game_state.lock().unwrap().player_one.lock().unwrap().position_dx = new_pos_dx;
     game_state.lock().unwrap().player_one.lock().unwrap().position_dy = new_pos_dy;
 
+    for i in -10..10 {
+        for j in -10..10 {
+            let key: &str = &[&(new_pos_dx + (i as f32 / 2000.0)).to_string(), ":", &(new_pos_dy + (j as f32 / 2000.0)).to_string()].concat();
+            if game_state.lock().unwrap().collisions_map.lock().unwrap().contains_key(key) {
+                // log!("contains key");
+                let tuple = game_state.lock().unwrap().collisions_map.lock().unwrap()[key].clone();
+                tuple.lock().unwrap().0 = true;
+            } else {
+                // log!("not contains key");
+                let tuple : Arc<Mutex<CollisionSpace>> = Arc::new(Mutex::new((true, false, vec![])));
+                game_state.lock().unwrap().collisions_map.lock().unwrap().clone().insert(key, tuple);
+            }
+        }
+    }    
+    
+    
+    
     let old_pos_dx = game_state.lock().unwrap().player_two.lock().unwrap().position_dx;
     let additional_dx = game_state.lock().unwrap().player_two.lock().unwrap().velocity_dx * (delta_scalar as f32);
     let mut new_pos_dx = old_pos_dx + additional_dx;
@@ -609,6 +621,23 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
     game_state.lock().unwrap().player_two.lock().unwrap().position_dx = new_pos_dx;
     game_state.lock().unwrap().player_two.lock().unwrap().position_dy = new_pos_dy;
 
+    for i in -10..10 {
+        for j in -10..10 {
+            let key: &str = &[&(new_pos_dx + (i as f32 / 2000.0)).to_string(), ":", &(new_pos_dy + (j as f32 / 2000.0)).to_string()].concat();
+            if game_state.lock().unwrap().collisions_map.lock().unwrap().contains_key(key) {
+                // log!("contains key");
+                let tuple = game_state.lock().unwrap().collisions_map.lock().unwrap()[key].clone();
+                tuple.lock().unwrap().1 = true;
+            } else {
+                // log!("not contains key");
+                let tuple : Arc<Mutex<CollisionSpace>> = Arc::new(Mutex::new((false, true, vec![])));
+                game_state.lock().unwrap().collisions_map.lock().unwrap().clone().insert(key, tuple);
+            }
+        }
+    }   
+
+    let mut removals: Vec<usize> = vec![];
+
     for (idx, torp) in game_state.lock().unwrap()
     .torps_in_flight.lock().unwrap()
     .iter().enumerate() {
@@ -616,8 +645,21 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
         let pos_dy = torp.lock().unwrap().position_dy;
         let v_dx = torp.lock().unwrap().velocity_dx;
         let v_dy = torp.lock().unwrap().velocity_dy;
-        torp.lock().unwrap().position_dx = pos_dx + (delta_scalar * v_dx);
-        torp.lock().unwrap().position_dy = pos_dy + (delta_scalar * v_dy);
+        let new_pos_dx = pos_dx + (delta_scalar * v_dx);
+        let new_pos_dy = pos_dy + (delta_scalar * v_dy);
+
+        if (new_pos_dx < -1.0) || (new_pos_dx > 1.0) || (new_pos_dy < -1.0) || (new_pos_dy > 1.0) {
+            removals.push(idx);
+        } else {
+            torp.lock().unwrap().position_dx = new_pos_dx;
+            torp.lock().unwrap().position_dy = new_pos_dy;
+        }
+    }
+
+    for i in removals.iter() {
+        if *i < game_state.lock().unwrap().torps_in_flight.lock().unwrap().len() {
+            game_state.lock().unwrap().torps_in_flight.lock().unwrap().remove(*i);
+        }
     }
 
     // Look for collisions
@@ -658,7 +700,10 @@ fn create_game_state
     }));
 
     let torps_in_flight = Arc::new(Mutex::new(vec![]));
-    let collisions_two : Arc<Mutex<HashMap<&'static str, CollisionSpace>>> = Arc::new(Mutex::new(HashMap::new()));
+    let collisions_two : Arc<Mutex<
+        HashMap<&'static str, Arc<Mutex<CollisionSpace>>>
+    >> = 
+        Arc::new(Mutex::new(HashMap::new()));
 
     // let collisions : Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(vec![]));
 
@@ -714,7 +759,7 @@ struct GameState
     start_time: Arc<Instant>,
     elapsed_time: Arc<Mutex<u128>>,
     game_over: Arc<Mutex<bool>>,
-    collisions_map: Arc<Mutex<HashMap<&'static str, CollisionSpace>>>,
+    collisions_map: Arc<Mutex<HashMap<&'static str, Arc<Mutex<CollisionSpace>>>>>,
     // model an explosion around a vector sum of the collided vehicles, with extra effects. covering torpedo collisions
     // This would be a good place to use Rust traits.
     result: Arc<Mutex<u8>>,
