@@ -173,9 +173,18 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
 }
 
 fn setup_shaders
+<'a>
 (
     gl: Arc<GL>,
 )
+-> Result<(
+    Arc<WebGlBuffer>, // player_vertex_buffer
+    Arc<js_sys::Float32Array>, // player_js_vertices,
+    Arc<web_sys::WebGlProgram>, // player_shader_program,
+    Arc<u32>, // player_vertices_position
+    Arc<WebGlUniformLocation>, //player_pos_deltas_loc
+    Arc<WebGlUniformLocation>, //player_vifo_theta_loc
+), &'a str>
 {
     let vehicle_100_vert_code = include_str!("../shaders/vehicle_100.vert");
     let torpedo_100_vert_code = include_str!("../shaders/torpedo_100.vert");
@@ -204,12 +213,13 @@ fn setup_shaders
     gl.attach_shader(&player_shader_program, &vehicle_100_vert_shader);
     gl.attach_shader(&player_shader_program, &frag_shader);
 
+
     let torpedo_100_shader_program = gl.create_program().unwrap();
     gl.attach_shader(&torpedo_100_shader_program, &torpedo_100_vert_shader);
     gl.attach_shader(&torpedo_100_shader_program, &frag_shader);
 
     gl.link_program(&player_shader_program);
-    gl.link_program(&player_shader_program);
+    // gl.link_program(&player_shader_program);
 
     let vehicle_100_vertices: Vec<f32> = vec![
         0.021, 0.0, 
@@ -230,16 +240,17 @@ fn setup_shaders
     let time_location = gl.get_uniform_location(&player_shader_program, "u_time");
 
     let player_pos_deltas_loc = gl.get_uniform_location(&player_shader_program, "pos_deltas");
-
-    // let v_200_vifo_theta_loc = gl.get_uniform_location(&vehicle_100_shader_program, "vifo_theta");
-
     let player_vifo_theta_loc =  gl.get_uniform_location(&player_shader_program, "vifo_theta");
+    let player_vertices_position = gl.get_attrib_location(&player_shader_program, "a_position") as u32;
 
-    // let t_200_pos_deltas_loc = gl.get_uniform_location(&torpedo_100_shader_program, "pos_deltas");
-    // let t_200_vifo_theta_loc = gl.get_uniform_location(&torpedo_100_shader_program, "vifo_theta");
-
-    // will probably return these locations.
-
+    Ok((
+        Arc::new(player_vertex_buffer),
+        Arc::new(player_js_vertices),
+        Arc::new(player_shader_program),
+        Arc::new(player_vertices_position),
+        Arc::new(player_pos_deltas_loc.unwrap()),
+        Arc::new(player_vifo_theta_loc.unwrap()),
+    ))
 }
 
 fn set_player_one_events
@@ -330,7 +341,7 @@ fn draw_players
     vertex_buffer: Arc<WebGlBuffer>,
     js_vertices: Arc<js_sys::Float32Array>,
     shader_program: Arc<web_sys::WebGlProgram>,
-    player_vertices_position: Arc<i32>,
+    player_vertices_position: Arc<u32>,
     time_location: Arc<WebGlUniformLocation>,
     player_pos_deltas_loc: Arc<WebGlUniformLocation>,
     vifo_theta_loc: Arc<WebGlUniformLocation>,
@@ -338,7 +349,7 @@ fn draw_players
 {
     gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vertex_buffer));
     gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &js_vertices, GL::STATIC_DRAW);
-    gl.vertex_attrib_pointer_with_i32(*player_vertices_position as u32, 2, GL::FLOAT, false, 0, 0);
+    gl.vertex_attrib_pointer_with_i32(*player_vertices_position, 2, GL::FLOAT, false, 0, 0);
     gl.enable_vertex_attrib_array(*player_vertices_position as u32);
 
     gl.use_program(Some(&shader_program));
