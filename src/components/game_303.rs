@@ -149,9 +149,8 @@ fn render_game
 
     let game_state = create_game_state().unwrap();
 
-    set_player_one_events(
-        game_state.clone(),
-    );
+    set_player_one_events(game_state.clone());
+    set_player_two_events(game_state.clone());
 
     // let game_state = game_state.clone();
     let mut cursor = game_state.lock().unwrap().start_time.elapsed().as_millis();
@@ -274,7 +273,7 @@ fn setup_shaders
     ))
 }
 
-fn set_player_one_events
+fn set_player_two_events
 <'a>
 (
     game_state: Arc<Mutex<GameState>>,
@@ -289,18 +288,91 @@ fn set_player_one_events
     let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
         log!("keypress {#:?}", event.key_code());
         match event.key_code() {
+    74 => game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta -= Rad(0.1),
+    79 => {
+        let vniv_scalar = 0.08;
+        let vniv_theta = game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta;
+
+        let vniv_dx = Rad::cos(vniv_theta) * vniv_scalar;
+        let vniv_dy = Rad::sin(vniv_theta) * vniv_scalar;
+        
+        // let vehicle_new_summed_velocity_dx = 
+        let vnsv_dx = vniv_dx + game_state.lock().unwrap().player_two.lock().unwrap().velocity_dx;
+        let vnsv_dy = vniv_dy + game_state.lock().unwrap().player_two.lock().unwrap().velocity_dy;
+
+        let vnsv_theta = Rad::atan(vnsv_dy / vnsv_dx);
+        // let vnsv_scalar = (vnsv_dx as f32) / (Rad::cos(Rad(vnsv_theta)) as f32);
+        let vnsv_scalar = vnsv_dx / Rad::cos(vnsv_theta);
+        let vnsv_scalar_2 = vnsv_dy / Rad::sin(vnsv_theta);
+        // // assert vnvs_scalar == vnsv_scalar_2;
+        game_state.lock().unwrap().player_two.lock().unwrap().velocity_dx = vnsv_dx;
+        game_state.lock().unwrap().player_two.lock().unwrap().velocity_dy = vnsv_dy;
+        game_state.lock().unwrap().player_two.lock().unwrap().velocity_theta = vnsv_theta.into();
+        game_state.lock().unwrap().player_two.lock().unwrap().velocity_scalar = vnsv_scalar;
+
+    },
+    186 => game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta += Rad(0.1),
+    32 => {
+        let ticv_scalar = 0.34;
+        let ticv_theta = game_state.lock().unwrap().player_one.lock().unwrap().vifo_theta;
+        // let torpedo_own_impulse_velocity_dx =
+        let ticv_dx = Rad::cos(ticv_theta) * ticv_scalar;
+        let ticv_dy = Rad::sin(ticv_theta) * ticv_scalar;
+        // let torpedo_summed_velocity_dx =
+        let tsv_dx = ticv_dx + game_state.lock().unwrap().player_one.lock().unwrap().velocity_dx;
+        let tsv_dy = ticv_dy + game_state.lock().unwrap().player_one.lock().unwrap().velocity_dy;
+        // let torpedo_summed_velocity_theta = Rad::atan(tsv_dy / tsv_dx);
+        let tsv_theta = Rad::atan(tsv_dy / tsv_dx);
+        let tsv_scalar = tsv_dx / Rad::cos(tsv_theta);
+        let tsv_scalar_2 = tsv_dy / Rad::sin(tsv_theta);
+        // assert tsv_scalar == tsv_scalar_2;
+        let t_dx = game_state.lock().unwrap().player_one.lock().unwrap().position_dx;
+        let t_dy = game_state.lock().unwrap().player_one.lock().unwrap().position_dy;
+        let mut torpedo = Vehicle_100 {
+            position_dx:  t_dx,
+            position_dy: t_dy,
+            vifo_theta: ticv_theta,
+            velocity_theta: tsv_theta,
+            velocity_scalar: tsv_scalar,
+            velocity_dx: tsv_dx,
+            velocity_dy: tsv_dy,
+        };
+        game_state.lock().unwrap().torps_in_flight.lock().unwrap().push(torpedo);
+    },
+            _ => (),
+        }
+
+    }) as Box<dyn FnMut(KeyboardEvent)>);
+    et_keys
+        .add_event_listener_with_callback("keydown", keypress_cb.as_ref().unchecked_ref())
+        .unwrap();
+    keypress_cb.forget();
+}
+
+fn set_player_one_events
+<'a>
+(
+    game_state: Arc<Mutex<GameState>>,
+)
+{
+
+    // why not just use the document exposed by web-sys?
+    let document = web_sys::window().unwrap().document().unwrap();
+
+    let et_keys : EventTarget = document.into();
+
+    let keypress_cb = Closure::wrap(Box::new(move |event: KeyboardEvent| {
+        // log!("keypress {#:?}", event.key_code());
+        match event.key_code() {
             39 => game_state.lock().unwrap().player_one.lock().unwrap().vifo_theta -= Rad(0.1),
             38 => {
                 let vniv_scalar = 0.08;
                 let vniv_theta = game_state.lock().unwrap().player_one.lock().unwrap().vifo_theta;
-
                 let vniv_dx = Rad::cos(vniv_theta) * vniv_scalar;
                 let vniv_dy = Rad::sin(vniv_theta) * vniv_scalar;
-                
                 // let vehicle_new_summed_velocity_dx = 
                 let vnsv_dx = vniv_dx + game_state.lock().unwrap().player_one.lock().unwrap().velocity_dx;
                 let vnsv_dy = vniv_dy + game_state.lock().unwrap().player_one.lock().unwrap().velocity_dy;
-
                 let vnsv_theta = Rad::atan(vnsv_dy / vnsv_dx);
                 // let vnsv_scalar = (vnsv_dx as f32) / (Rad::cos(Rad(vnsv_theta)) as f32);
                 let vnsv_scalar = vnsv_dx / Rad::cos(vnsv_theta);
@@ -310,10 +382,9 @@ fn set_player_one_events
                 game_state.lock().unwrap().player_one.lock().unwrap().velocity_dy = vnsv_dy;
                 game_state.lock().unwrap().player_one.lock().unwrap().velocity_theta = vnsv_theta.into();
                 game_state.lock().unwrap().player_one.lock().unwrap().velocity_scalar = vnsv_scalar;
-
             },
             37 => game_state.lock().unwrap().player_one.lock().unwrap().vifo_theta += Rad(0.1),
-            32 => {
+            96 => {
                 let ticv_scalar = 0.34;
                 let ticv_theta = game_state.lock().unwrap().player_one.lock().unwrap().vifo_theta;
                 // let torpedo_own_impulse_velocity_dx =
@@ -349,7 +420,6 @@ fn set_player_one_events
         .add_event_listener_with_callback("keydown", keypress_cb.as_ref().unchecked_ref())
         .unwrap();
     keypress_cb.forget();
-
 }
 
 fn draw_players
@@ -386,9 +456,19 @@ fn draw_players
     let new_vifo_theta = game_state.lock().unwrap().player_one.lock().unwrap().vifo_theta;
     gl.uniform1f(Some(&player_vifo_theta_loc), new_vifo_theta.0);
     gl.draw_arrays(GL::TRIANGLES, 0, 6);
+
+    let new_pos_dx = game_state.lock().unwrap().player_two.lock().unwrap().position_dx;
+    let new_pos_dy = game_state.lock().unwrap().player_two.lock().unwrap().position_dy;
+
+    gl.uniform2f(Some(&player_pos_deltas_loc), new_pos_dx, new_pos_dy);
+    
+    let new_vifo_theta = game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta;
+    gl.uniform1f(Some(&player_vifo_theta_loc), new_vifo_theta.0);
+    gl.draw_arrays(GL::TRIANGLES, 0, 6);
 }
 
-fn update_game_state
+// fn update_positions 
+fn update_game_state // A slight misnomer, as game state is also mutated by event-handlers.
 <'a>
 (
     time_delta: u128,
@@ -420,6 +500,27 @@ fn update_game_state
     game_state.lock().unwrap().player_one.lock().unwrap().position_dx = new_pos_dx;
     game_state.lock().unwrap().player_one.lock().unwrap().position_dy = new_pos_dy;
 
+    let old_pos_dx = game_state.lock().unwrap().player_two.lock().unwrap().position_dx;
+    let additional_dx = game_state.lock().unwrap().player_two.lock().unwrap().velocity_dx * (delta_scalar as f32);
+    let mut new_pos_dx = old_pos_dx + additional_dx;
+    if new_pos_dx < -1.0 {
+        new_pos_dx = new_pos_dx + 2.0;
+    }
+    if new_pos_dx > 1.0 {
+        new_pos_dx = new_pos_dx - 2.0;
+    }
+
+    let old_pos_dy = game_state.lock().unwrap().player_two.lock().unwrap().position_dy;
+    let additional_dy = game_state.lock().unwrap().player_two.lock().unwrap().velocity_dy * (delta_scalar as f32);
+    let mut new_pos_dy = old_pos_dy + additional_dy;
+    if new_pos_dy < -1.0 {
+        new_pos_dy += 2.0;
+    }
+    if new_pos_dy > 1.0 {
+        new_pos_dy -= 2.0;
+    }
+    game_state.lock().unwrap().player_two.lock().unwrap().position_dx = new_pos_dx;
+    game_state.lock().unwrap().player_two.lock().unwrap().position_dy = new_pos_dy;
 
     Ok(game_state)
 }
@@ -443,8 +544,8 @@ fn create_game_state
     }));
 
     let player_two = Arc::new(Mutex::new(Vehicle_100 {
-        position_dx: -0.3,
-        position_dy: -0.3,
+        position_dx: -0.4,
+        position_dy: -0.4,
         vifo_theta: Rad(-0.3),
         velocity_theta: Rad(-0.3),
         velocity_scalar: 0.0,
@@ -468,7 +569,6 @@ fn create_game_state
     };
 
     Ok( Arc::new(Mutex::new(game_state)))
-    // Err("Not set up yet.")
 }
 
 
@@ -500,46 +600,3 @@ struct Vehicle_100 {
     velocity_dy: f32, 
 }
 
-// fn setup_vertex_buffers
-// (
-//     gl: Arc<GL>,
-// )
-// {
-
-//     let vehicle_050_vertices: Vec<f32> = vec![
-//         0.034, 0.0, 
-//          -0.011, -0.011,
-//         -0.011, 0.011,
-//     ];
-
-//     let vehicle_100_vertices: Vec<f32> = vec![
-//         0.021, 0.0, 
-//          -0.008, -0.008,
-//         -0.008, 0.008,
-//     ];
-
-
-//     let torpedo_050_vertices: Vec<f32> = vec![
-//         0.012, 0.0,
-//         -0.007, -0.007, 
-//         -0.007, 0.007, 
-//     ];
-
-//     let torpedo_100_vertices: Vec<f32> = vec![
-//         0.007, 0.0,
-//         -0.0038, -0.0038, 
-//         -0.0038, 0.0038, 
-//     ];
-
-//     let vehicle_100_vertex_buffer = gl.create_buffer().unwrap();
-//     let vehicle_100_js_vertices = js_sys::Float32Array::from(vehicle_100_vertices.as_slice());
-//     let torpedo_100_vertex_buffer = gl.create_buffer().unwrap();
-//     let torpedo_100_js_vertices = js_sys::Float32Array::from(torpedo_100_vertices.as_slice());
-//     let time_location = gl.get_uniform_location(&vehicle_100_shader_program, "u_time");
-//     let v_200_pos_deltas_loc = gl.get_uniform_location(&vehicle_100_shader_program, "pos_deltas");
-//     let v_200_vifo_theta_loc = gl.get_uniform_location(&vehicle_100_shader_program, "vifo_theta");
-//     let t_200_pos_deltas_loc = gl.get_uniform_location(&torpedo_100_shader_program, "pos_deltas");
-//     let t_200_vifo_theta_loc = gl.get_uniform_location(&torpedo_100_shader_program, "vifo_theta");
-
-
-// }
