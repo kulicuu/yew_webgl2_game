@@ -549,7 +549,7 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
 )
 -> Result<Arc<Mutex<GameState>>, &'a str>
 {
-    let mut collisions_map : HashMap<&str, CollisionSpace> = HashMap::new();
+    let mut collisions_map : HashMap<String, CollisionSpace> = HashMap::new();
 
     let delta_scalar = (time_delta as f32) * 0.001;
     let old_pos_dx = game_state.lock().unwrap().player_one.lock().unwrap().position_dx;
@@ -575,40 +575,21 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
     game_state.lock().unwrap().player_one.lock().unwrap().position_dy = new_pos_dy;
 
 
-    // let mut key: Option<&str> = None;
-
     for i in -10..10 {
         for j in -10..10 {
             let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
             let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
 
             let s_key : String = [base_dx.to_string(), String::from(":"), base_dy.to_string()].concat();
-
-            if collisions_map.contains_key(&s_key as &str) {
-                let (k, mut tuple) = collisions_map.remove_entry(&s_key as &str).unwrap();
+            
+            if collisions_map.contains_key(&s_key) {
+                let (k, mut tuple) = collisions_map.remove_entry(&s_key).unwrap();
                 tuple.0 = true;
                 collisions_map.insert(k, tuple);
-            } 
-
-            // if collisions_map.contains_key(key.unwrap()) {
-            //     // let ref mut d = collisions_map[key];
-            //     // d.0 = true;
-            //     // let mut tuple = collisions_map.remove(key).unwrap();
-            //     // tuple.0 = true;
-            //     // collisions_map.insert(key, tuple);
-            //     // let &(mut tuple) = collisions_map[key];
-            //     // tuple.0 = true;
-            //     // collisions_map.insert(*key, tuple);
-            //     // log!("contains");
-            // } else {
-            //     // log!("elsed");
-            //     // let tuple : Arc<Mutex<CollisionSpace>> = (true, false, Arc::new(Mutex::new(vec![])));
-            //     // let tuple : Arc<Mutex<CollisionSpace>> = Arc::new(Mutex::new((true, false, vec![])));
-            //     // let tuple: CollisionSpace = (true, false, vec![]);
-            //     // collisions_map.insert(key, tuple);
-            //     // log!("inserted?", collisions_map.len());
-                
-            // }
+            } else {
+                let tuple : CollisionSpace = (true, false, vec![]);
+                collisions_map.insert(s_key, tuple);   
+            }
         }
     }    
     
@@ -635,20 +616,23 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
     game_state.lock().unwrap().player_two.lock().unwrap().position_dy = new_pos_dy;
 
 
-    // for i in -10..10 {
-    //     for j in -10..10 {
-    //         let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
-    //         let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
-    //         let key: &str = &[&(base_dx).to_string(), ":", &(base_dy).to_string()].concat();
-    //         if collisions_map.lock().unwrap().contains_key(key) {
-    //             // log!("contains");
-    //             collisions_map.lock().unwrap()[key].lock().unwrap().1 = true;
-    //         } else {
-    //             let tuple : Arc<Mutex<CollisionSpace>> = Arc::new(Mutex::new((false, true, vec![])));
-    //             collisions_map.lock().unwrap().clone().insert(key, tuple);
-    //         }
-    //     }
-    // } 
+    for i in -10..10 {
+        for j in -10..10 {
+            let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
+            let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
+
+            let s_key : String = [base_dx.to_string(), String::from(":"), base_dy.to_string()].concat();
+            
+            if collisions_map.contains_key(&s_key) {
+                let (k, mut tuple) = collisions_map.remove_entry(&s_key).unwrap();
+                tuple.1 = true;
+                collisions_map.insert(k, tuple);
+            } else {
+                let tuple : CollisionSpace = (true, false, vec![]);
+                collisions_map.insert(s_key, tuple);   
+            }
+        }
+    } 
 
     let mut removals: Vec<usize> = vec![];
     
@@ -668,20 +652,25 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
             torp.lock().unwrap().position_dx = new_pos_dx;
             torp.lock().unwrap().position_dy = new_pos_dy;
 
-            // for i in -5..5 {
-            //     for j in -5..5 {
-            //         let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
-            //         let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
-            //         let key: &str = &[&(base_dx).to_string(), ":", &(base_dy).to_string()].concat();
-            //         if collisions_map.lock().unwrap().contains_key(key) {
-            //             log!("contains");
-            //             collisions_map.lock().unwrap()[key].lock().unwrap().2.push(idx);
-            //         } else {
-            //             let tuple : Arc<Mutex<CollisionSpace>> = Arc::new(Mutex::new((true, false, vec![idx])));
-            //             collisions_map.lock().unwrap().clone().insert(key, tuple);
-            //         }
-            //     }
-            // }
+            for i in -5..5 {
+                for j in -5..5 {
+
+                    let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
+                    let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
+        
+                    let s_key : String = [base_dx.to_string(), String::from(":"), base_dy.to_string()].concat();
+                    
+                    if collisions_map.contains_key(&s_key) {
+                        let (k, mut tuple) = collisions_map.remove_entry(&s_key).unwrap();
+                        // tuple.0 = true;
+                        tuple.2.push(idx);
+                        collisions_map.insert(k, tuple);
+                    } else {
+                        let tuple : CollisionSpace = (true, false, vec![]);
+                        collisions_map.insert(s_key, tuple);   
+                    }
+                }
+            }
         }
     }
 
@@ -692,12 +681,28 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
     }
 
 
+    for (key, space) in collisions_map.iter() {
+        if (space.0 == true) && (space.2.len() > 0) {
+            log!("Torpedo kills player one.");
+        }
+
+        if (space.0 == true) && (space.1 == true) {
+            log!("vehicle collision");
+        }
+
+        if (space.1 == true) && (space.2.len() > 0) {
+            log!("Torpedo kills player 2.");
+        }
+
+    }
 
 
     collisions_map.clear();
 
     Ok(game_state)
 }
+
+
 
 fn create_game_state
 <'a>
