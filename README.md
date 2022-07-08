@@ -28,11 +28,21 @@ Use the up-arrow key to fire the rocket motor to move the spaceship.
 Use the spacebar to fire the torpedos.
 
 **update**
-There is a new version at localhost:9090/game_3 which is coded in components/game_303.rs
+There is a new version at localhost:9090/game_4 which is coded in components/game_404.rs.
 
-This has two players, though the keybindings are at the moment in Dvorak for the left hand of the keyboard. 'z', 'c', 's' and 'spacebar' for the left user, and arrows and the numeric keypad '0' for the right handed user.
 
-I finally (after struggling with a lifetimes/ownership issue all afternoon) got collisions working. So then I'll do the graphics (very basic) for that, after which I'll do the networking integration over WebSockets to an Actix server.
+This has two players, though the keybindings are at the moment in Dvorak for the left hand of the keyboard. 'z', 'c', 's' and 'spacebar' for the left user, and arrows and the numeric keypad '0' for the right handed user.  
+
+In Dvorak layout, keys marked z, c, and s, are ';', 'j', and 'o'.  Until I do a proper layout for normal, this is what we have.  It's just a placeholder until networked play.  
+
+I'm also planning the resurrection of the mouse handler, in order to use the mouse for vehicle orientation and maybe one of shooting or engine impulse.
+
+Yesterday I was working on shader transforms but although it compiled I think it used too much memory, anyways WebGl warnings/errors occured about transform being bound to a non-transform object.
+
+That example can be seen here. I was planning to adapt this for the vehicle explosions.  https://github.com/tsherif/webgl2examples/blob/master/particles.html
+
+
+
 
 
 

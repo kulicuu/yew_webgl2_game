@@ -887,30 +887,10 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
 
     let torps_in_flight = game_state.lock().unwrap().torps_in_flight.clone();
 
-    // Compilation failure on nightly even with the feature flag up top.  
-    // torps_in_flight.lock().unwrap().drain_filter(|torp| {
-    //     log!("torp");
-    //     false
-    // });
-
     let mut v : Vec<Arc<Mutex<Vehicle_100>>> = vec![];
     for (idx, torp) in torps_in_flight.lock().unwrap().iter().enumerate() {
         if !((new_pos_dx < -1.0) || (new_pos_dx > 1.0) || (new_pos_dy < -1.0) || (new_pos_dy > 1.0)) {
-            let t = torp.lock().unwrap();
-            let t2 = Vehicle_100 {
-                position_dx: t.position_dx, // raw displacement in x, y
-                position_dy: t.position_dy,
-                // vehicle_inertial_frame_orientation_theta: f32,
-                vifo_theta: t.vifo_theta,
-                // polar description
-                velocity_theta: t.velocity_theta,
-                velocity_scalar: t.velocity_scalar,
-                // redundant alternate description of velocity, cartesian
-                velocity_dx: t.velocity_dx,
-                velocity_dy: t.velocity_dy, 
-
-            };
-            v.push(Arc::new(Mutex::new(t2)));
+            v.push(Arc::new(Mutex::new(*torp.lock().unwrap())));
         } 
     }
 
@@ -1074,7 +1054,7 @@ struct GameState
     mode: Arc<u8>, // 1 player vs computer, 2 player local, 2 player network
 }
 
-
+#[derive(Copy, Clone)]
 struct Vehicle_100 {
     position_dx: f32, // raw displacement in x, y
     position_dy: f32,
