@@ -38,12 +38,13 @@ use std::f32::consts::PI;
 
 const AMORTIZATION: f32 = 0.95;
 
-
+const LOCALIZED_SCALE : f32 = 0.1;
+const CORRECTION : f32 = LOCALIZED_SCALE / 2.0;
 const RESOLUTION : f32 = 8.0;
 const SCALE : f32 = 0.08;
 const HALF : f32 = SCALE / 2.0;
 const STEP : f32 = SCALE / RESOLUTION;
-const NUM_PARTICLES : u32 = 5000;
+const NUM_PARTICLES : u32 = 9500;
 
 // https://github.com/rust-lang/rust/issues/48564#issuecomment-698712971
 // std::time invocation causes panic.  There is a comment linked above which solves this
@@ -178,9 +179,9 @@ fn render_game
     for i in 0..NUM_PARTICLES {
         let vec3i : usize = (i as usize) * 3;
 
-        position_data.lock().unwrap()[vec3i] = (js_sys::Math::random() as f32) * 2.0 - 1.0;
-        position_data.lock().unwrap()[vec3i + 1] = (js_sys::Math::random() as f32) * 2.0 - 1.0;
-        position_data.lock().unwrap()[vec3i + 2] = (js_sys::Math::random() as f32) * 2.0 - 1.0;
+        position_data.lock().unwrap()[vec3i] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
+        position_data.lock().unwrap()[vec3i + 1] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
+        position_data.lock().unwrap()[vec3i + 2] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
 
         color_data.lock().unwrap()[vec3i] = js_sys::Math::random() as f32;
         color_data.lock().unwrap()[vec3i + 1] = js_sys::Math::random() as f32;
@@ -255,21 +256,24 @@ fn render_game
 
     let mut mass_uniform_data : [f32; 20] = [0.0; 20];
 
-    mass_uniform_data[0] = (js_sys::Math::random() / 30000.0) as f32;
-    mass_uniform_data[1] = (js_sys::Math::random() / 30000.0) as f32;
-    mass_uniform_data[2] = (js_sys::Math::random() / 30000.0) as f32;
+    let localized_scale = 0.5;
+    let correction = localized_scale / 2.0;
 
-    mass_uniform_data[4] = (js_sys::Math::random() * 2.0 - 1.0) as f32;
-    mass_uniform_data[5] = (js_sys::Math::random() * 2.0 - 1.0) as f32;
-    mass_uniform_data[6] = (js_sys::Math::random() * 2.0 - 1.0) as f32;
+    mass_uniform_data[0] = (js_sys::Math::random() / ((NUM_PARTICLES as f64) * 1.5)) as f32;
+    mass_uniform_data[1] = (js_sys::Math::random() / ((NUM_PARTICLES as f64) * 1.5)) as f32;
+    mass_uniform_data[2] = (js_sys::Math::random() / (NUM_PARTICLES as f64) * 1.5) as f32;
 
-    mass_uniform_data[8] = (js_sys::Math::random() * 2.0 - 1.0) as f32;
-    mass_uniform_data[9] = (js_sys::Math::random() * 2.0 - 1.0) as f32;
-    mass_uniform_data[10] = (js_sys::Math::random() * 2.0 - 1.0) as f32;
+    mass_uniform_data[4] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+    mass_uniform_data[5] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+    mass_uniform_data[6] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
 
-    mass_uniform_data[16] = (js_sys::Math::random() * 2.0 - 1.0) as f32;
-    mass_uniform_data[17] = (js_sys::Math::random() * 2.0 - 1.0) as f32;
-    mass_uniform_data[18] = (js_sys::Math::random() * 2.0 - 1.0) as f32;
+    mass_uniform_data[8] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+    mass_uniform_data[9] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+    mass_uniform_data[10] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+
+    mass_uniform_data[16] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+    mass_uniform_data[17] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+    mass_uniform_data[18] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
 
     let mass_uniform_buffer = gl.create_buffer();
     gl.bind_buffer_base(GL::UNIFORM_BUFFER, 0, mass_uniform_buffer.as_ref());
@@ -287,8 +291,8 @@ fn render_game
     // let game_state = game_state.clone();
     let mut cursor = game_state.lock().unwrap().start_time.elapsed().as_millis();
 
-    // gl.clear_color(0.99, 0.99, 0.99, 1.0);
-    gl.clear_color(0.01, 0.01, 0.01, 1.0);
+    gl.clear_color(0.99, 0.99, 0.99, 1.0);
+    // gl.clear_color(0.01, 0.01, 0.01, 1.0);
     gl.enable(GL::BLEND);
     gl.blend_func(GL::ONE, GL::ONE_MINUS_SRC_ALPHA);
 
