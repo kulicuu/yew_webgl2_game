@@ -16,10 +16,8 @@ https://github.com/yewstack/yew
 From project root, run `trunk serve`.  
 Go to localhost:9090
 
-**update** Or for the most current: go to localhost:9090/game_3
 
-
-## How to play the game:
+## Game manual:
 
 Use the left-arrow and right-arrow keys to rotate the spaceship.
 
@@ -27,13 +25,13 @@ Use the up-arrow key to fire the rocket motor to move the spaceship.
 
 Use the spacebar to fire the torpedos.
 
-**update**
-There is a new version at localhost:9090/game_4 which is coded in components/game_404.rs.
-
-
 This has two players, though the keybindings are at the moment in Dvorak for the left hand of the keyboard. 'z', 'c', 's' and 'spacebar' for the left user, and arrows and the numeric keypad '0' for the right handed user.  
 
 In Dvorak layout, keys marked z, c, and s, are ';', 'j', and 'o'.  Until I do a proper layout for normal, this is what we have.  It's just a placeholder until networked play.  
+
+
+### Notes
+
 
 I'm also planning the resurrection of the mouse handler, in order to use the mouse for vehicle orientation and maybe one of shooting or engine impulse.
 

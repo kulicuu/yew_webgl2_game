@@ -32,9 +32,9 @@ pub enum Route {
     // #[at("/")]
     // GameTwo,
     #[at("/")]
-    GameThree,
-    #[at("/game_4")]
     GameFour,
+    #[at("/game_3_old")]
+    GameThree,
     // #[at("/login")]
     // Login,
     // #[at("/chat")]
