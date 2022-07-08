@@ -11,11 +11,12 @@ use yew::functional::*;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use components::chat::Chat;
-use components::login::Login;
-use components::game_202::{GameTwo};
+// use components::chat::Chat;
+// use components::login::Login;
+// use components::game_202::{GameTwo};
 use components::game_303::{GameThree};
 use components::particles::Particles;
+use components::game_404::{GameFour};
 
 
 use wasm_logger;
@@ -28,14 +29,16 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 pub enum Route {
     #[at("/particles")]
     Particles,
+    // #[at("/")]
+    // GameTwo,
     #[at("/")]
-    GameTwo,
-    #[at("/game_3")]
     GameThree,
-    #[at("/login")]
-    Login,
-    #[at("/chat")]
-    Chat,
+    #[at("/game_4")]
+    GameFour,
+    // #[at("/login")]
+    // Login,
+    // #[at("/chat")]
+    // Chat,
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -69,10 +72,11 @@ fn main() -> Html {
 fn switch(selected_route: &Route) -> Html {
     match selected_route {
         Route::Particles => html! {<Particles />},
-        Route::GameTwo => html! {<GameTwo />},
+        // Route::GameTwo => html! {<GameTwo />},
         Route::GameThree => html! {<GameThree />},
-        Route::Login => html! {<Login />},
-        Route::Chat => html! {<Chat/>},
+        Route::GameFour => html! {<GameFour />},
+        // Route::Login => html! {<Login />},
+        // Route::Chat => html! {<Chat/>},
         Route::NotFound => html! {<h1>{"404"}</h1>},
     }
 }

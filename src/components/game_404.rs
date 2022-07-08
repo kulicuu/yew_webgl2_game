@@ -1,3 +1,8 @@
+#![allow(unused)]
+#![feature(drain_filter)]
+
+
+
 use web_sys::{
     HtmlCanvasElement, WebGl2RenderingContext as GL, 
     window, AngleInstancedArrays, KeyboardEvent,
@@ -38,7 +43,7 @@ const RESOLUTION : f32 = 8.0;
 const SCALE : f32 = 0.08;
 const HALF : f32 = SCALE / 2.0;
 const STEP : f32 = SCALE / RESOLUTION;
-const NUM_PARTICLES : u32 = 500;
+const NUM_PARTICLES : u32 = 2000;
 
 // https://github.com/rust-lang/rust/issues/48564#issuecomment-698712971
 // std::time invocation causes panic.  There is a comment linked above which solves this
@@ -98,11 +103,11 @@ impl SubAssign<Duration> for Instant { fn sub_assign(&mut self, other: Duration)
 
 pub enum Msg {}
 
-pub struct Particles {
+pub struct GameFour {
     node_ref: Arc<NodeRef>,
 }
 
-impl Component for Particles {
+impl Component for GameFour {
     type Message = Msg;
     type Properties = ();
     fn create(_ctx: &Context<Self>) -> Self {
@@ -271,7 +276,11 @@ fn render_game
     let mass_uniform_buffer = gl.create_buffer();
     gl.bind_buffer_base(GL::UNIFORM_BUFFER, 0, mass_uniform_buffer.as_ref());
     let mass_uniform_data_js = js_sys::Float32Array::from(mass_uniform_data.as_slice());
+    
     gl.buffer_data_with_array_buffer_view(GL::UNIFORM_BUFFER, &mass_uniform_data_js, GL::STATIC_DRAW);
+
+
+    
 
 
     let mut switch = Arc::new(Mutex::new(AtomicBool::new(true)));
@@ -284,8 +293,8 @@ fn render_game
     // let game_state = game_state.clone();
     let mut cursor = game_state.lock().unwrap().start_time.elapsed().as_millis();
 
-    // gl.clear_color(0.99, 0.99, 0.99, 1.0);
-    gl.clear_color(0.01, 0.01, 0.01, 1.0);
+    gl.clear_color(0.99, 0.99, 0.99, 1.0);
+    // gl.clear_color(0.01, 0.01, 0.01, 1.0);
     gl.enable(GL::BLEND);
     gl.blend_func(GL::ONE, GL::ONE_MINUS_SRC_ALPHA);
 
@@ -299,36 +308,6 @@ fn render_game
 
         
         gl.clear(GL::COLOR_BUFFER_BIT);
-
-
-        gl.use_program(Some(&particles_shader_program));
-        gl.bind_vertex_array(Some(current_vertex_array.lock().unwrap().as_ref()));
-        gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(current_transform_feedback.lock().unwrap().as_ref()));
-    
-        let s = *switch.lock().unwrap().get_mut();
-    
-        if s {
-            gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(position_buffer_a.lock().unwrap().as_ref()));
-            gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(velocity_buffer_a.lock().unwrap().as_ref()));
-        } else {;
-            gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(position_buffer_b.lock().unwrap().as_ref()));
-            gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(velocity_buffer_b.lock().unwrap().as_ref()));
-        }
-    
-        gl.begin_transform_feedback(GL::POINTS);
-        gl.draw_arrays(GL::POINTS, 0, NUM_PARTICLES as i32);
-        gl.end_transform_feedback();
-    
-        if s {
-            current_vertex_array = vertex_array_b.clone();
-            current_transform_feedback = transform_feedback_a.clone();
-        } else 
-        {
-            current_vertex_array = vertex_array_a.clone();
-            current_transform_feedback = transform_feedback_b.clone();
-        }
-    
-        *switch.lock().unwrap().get_mut() = !s; 
 
         // draw_particles(
         //     gl.clone(),
@@ -346,30 +325,30 @@ fn render_game
         //     switch.clone(),
         // );
 
-        // let game_state = update_game_state(time_delta, game_state.clone()).unwrap();
-        // draw_players(
-        //     gl.clone(),
-        //     game_state.clone(),
-        //     player_vertex_buffer.clone(),
-        //     player_js_vertices.clone(),
-        //     player_shader_program.clone(),
-        //     player_vertices_position.clone(),
-        //     time_location.clone(),
-        //     player_pos_deltas_loc.clone(),
-        //     player_vifo_theta_loc.clone(),
-        // );
+        let game_state = update_game_state(time_delta, game_state.clone()).unwrap();
+        draw_players(
+            gl.clone(),
+            game_state.clone(),
+            player_vertex_buffer.clone(),
+            player_js_vertices.clone(),
+            player_shader_program.clone(),
+            player_vertices_position.clone(),
+            time_location.clone(),
+            player_pos_deltas_loc.clone(),
+            player_vifo_theta_loc.clone(),
+        );
 
-        // draw_torps(
-        //     gl.clone(),
-        //     game_state.clone(),
-        //     torp_vertex_buffer.clone(),
-        //     torp_js_vertices.clone(),
-        //     torp_shader_program.clone(),
-        //     torp_vertices_position.clone(),
-        //     time_location_2.clone(),
-        //     torp_pos_deltas_loc.clone(),
-        //     torp_vifo_theta_loc.clone(),
-        // );
+        draw_torps(
+            gl.clone(),
+            game_state.clone(),
+            torp_vertex_buffer.clone(),
+            torp_js_vertices.clone(),
+            torp_shader_program.clone(),
+            torp_vertices_position.clone(),
+            time_location_2.clone(),
+            torp_pos_deltas_loc.clone(),
+            torp_vifo_theta_loc.clone(),
+        );
 
         request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
     }) as Box<dyn FnMut()>));
@@ -408,13 +387,10 @@ fn draw_particles
 
 
 
-    let s = *switch.lock().unwrap().get_mut();
-
-    // if *current_transform_feedback.lock().unwrap() == *transform_feedback_a.lock().unwrap() {
-    if s {
+    if *current_transform_feedback.lock().unwrap() == *transform_feedback_a.lock().unwrap() {
         gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(position_buffer_a.lock().unwrap().as_ref()));
         gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(velocity_buffer_a.lock().unwrap().as_ref()));
-    } else {;
+    } else {
         gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(position_buffer_b.lock().unwrap().as_ref()));
         gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(velocity_buffer_b.lock().unwrap().as_ref()));
     }
@@ -423,16 +399,22 @@ fn draw_particles
     gl.draw_arrays(GL::POINTS, 0, NUM_PARTICLES as i32);
     gl.end_transform_feedback();
 
+
+
+    let s = *switch.lock().unwrap().get_mut();
     if s {
-        current_vertex_array = vertex_array_b.clone();
-        current_transform_feedback = transform_feedback_a.clone();
+        
+        current_vertex_array = vertex_array_b;
+        current_transform_feedback = transform_feedback_a;
     } else 
     {
-        current_vertex_array = vertex_array_a.clone();
-        current_transform_feedback = transform_feedback_b.clone();
+        current_vertex_array = vertex_array_a;
+        current_transform_feedback = transform_feedback_b;
     }
 
     *switch.lock().unwrap().get_mut() = !s; 
+    // switch.lock().unwrap() = false;
+
 }
 
 fn setup_torp_shaders
@@ -903,8 +885,38 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
 
     let mut removals: Vec<usize> = vec![];
 
-    for (idx, torp) in game_state.lock().unwrap()
-    .torps_in_flight.lock().unwrap()
+    let torps_in_flight = game_state.lock().unwrap().torps_in_flight.clone();
+
+    // Compilation failure on nightly even with the feature flag up top.  
+    // torps_in_flight.lock().unwrap().drain_filter(|torp| {
+    //     log!("torp");
+    //     false
+    // });
+
+    let mut v : Vec<Arc<Mutex<Vehicle_100>>> = vec![];
+    for (idx, torp) in torps_in_flight.lock().unwrap().iter().enumerate() {
+        if !((new_pos_dx < -1.0) || (new_pos_dx > 1.0) || (new_pos_dy < -1.0) || (new_pos_dy > 1.0)) {
+            let t = torp.lock().unwrap();
+            let t2 = Vehicle_100 {
+                position_dx: t.position_dx, // raw displacement in x, y
+                position_dy: t.position_dy,
+                // vehicle_inertial_frame_orientation_theta: f32,
+                vifo_theta: t.vifo_theta,
+                // polar description
+                velocity_theta: t.velocity_theta,
+                velocity_scalar: t.velocity_scalar,
+                // redundant alternate description of velocity, cartesian
+                velocity_dx: t.velocity_dx,
+                velocity_dy: t.velocity_dy, 
+
+            };
+            v.push(Arc::new(Mutex::new(t2)));
+        } 
+    }
+
+    *torps_in_flight.lock().unwrap() = v;
+
+    for (idx, torp) in torps_in_flight.lock().unwrap()
     .iter().enumerate() {
         let pos_dx = torp.lock().unwrap().position_dx;
         let pos_dy = torp.lock().unwrap().position_dy;
@@ -913,39 +925,31 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
         let new_pos_dx = pos_dx + (delta_scalar * v_dx);
         let new_pos_dy = pos_dy + (delta_scalar * v_dy);
 
-        if (new_pos_dx <= -1.0) || (new_pos_dx >= 1.0) || (new_pos_dy <= -1.0) || (new_pos_dy >= 1.0) {
-            
-        } else {
-            torp.lock().unwrap().position_dx = new_pos_dx;
-            torp.lock().unwrap().position_dy = new_pos_dy;
 
-            for i in -5..5 {
-                for j in -5..5 {
+        torp.lock().unwrap().position_dx = new_pos_dx;
+        torp.lock().unwrap().position_dy = new_pos_dy;
 
-                    let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
-                    let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
-        
-                    let s_key : String = [base_dx.to_string(), String::from(":"), base_dy.to_string()].concat();
-                    
-                    if collisions_map.contains_key(&s_key) {
-                        let (k, mut tuple) = collisions_map.remove_entry(&s_key).unwrap();
-                        // tuple.0 = true;
-                        tuple.2.push(idx);
-                        collisions_map.insert(k, tuple);
-                    } else {
-                        let tuple : CollisionSpace = (true, false, vec![]);
-                        collisions_map.insert(s_key, tuple);   
-                    }
+        for i in -5..5 {
+            for j in -5..5 {
+
+                let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
+                let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
+    
+                let s_key : String = [base_dx.to_string(), String::from(":"), base_dy.to_string()].concat();
+                
+                if collisions_map.contains_key(&s_key) {
+                    let (k, mut tuple) = collisions_map.remove_entry(&s_key).unwrap();
+                    // tuple.0 = true;
+                    tuple.2.push(idx);
+                    collisions_map.insert(k, tuple);
+                } else {
+                    let tuple : CollisionSpace = (true, false, vec![]);
+                    collisions_map.insert(s_key, tuple);   
                 }
             }
         }
-        
-    }
 
-    for i in removals.iter() {
-        if *i < game_state.lock().unwrap().torps_in_flight.lock().unwrap().len() {
-            game_state.lock().unwrap().torps_in_flight.lock().unwrap().clone().remove(*i);
-        }
+        
     }
 
 
