@@ -17,6 +17,7 @@ use yew_router::prelude::*;
 use components::game_303::{GameThree};
 use components::particles::Particles;
 use components::game_404::{GameFour};
+use components::game_505::{GameFive};
 
 
 use wasm_logger;
@@ -33,6 +34,8 @@ pub enum Route {
     // GameTwo,
     #[at("/")]
     GameFour,
+    #[at("/game_5")]
+    GameFive,
     #[at("/game_3_old")]
     GameThree,
     // #[at("/login")]
@@ -75,6 +78,7 @@ fn switch(selected_route: &Route) -> Html {
         // Route::GameTwo => html! {<GameTwo />},
         Route::GameThree => html! {<GameThree />},
         Route::GameFour => html! {<GameFour />},
+        Route::GameFive => html! {<GameFive />},
         // Route::Login => html! {<Login />},
         // Route::Chat => html! {<Chat/>},
         Route::NotFound => html! {<h1>{"404"}</h1>},

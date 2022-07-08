@@ -5,4 +5,5 @@
 pub mod game_303;
 pub mod particles;
 pub mod game_404;
+pub mod game_505;
 
