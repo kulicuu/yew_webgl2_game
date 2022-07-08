@@ -8,10 +8,11 @@ authors = ["J Wylie Cullick <wylie@terebinth.is>"]
 
 gloo-console = "0.2.1"
 js-sys = "0.3.58"
+serde = { version = "1.0", features = ["derive"] }
+wasm-bindgen = { version = "0.2.81", features = ["serde-serialize"] }
 yew = { version = "0.19.3" }
 yew-agent = { version = "0.1.0" }
 yew-router = "0.16"
-wasm-bindgen = "0.2.81"
 wasm-sockets = "0.2.2"
 wasm-bindgen-futures = "0.4.31"
 futures = "0.3.21"
@@ -22,7 +23,6 @@ wee_alloc = { version = "0.4.2", optional = true }
 log = "0.4.17"
 console_log = "0.2.0"
 console_error_panic_hook = "0.1.6"
-serde = "1.0"
 serde_json = "1.0.81"
 gloo-net = "0.2.2"
 reqwasm = "0.5.0"
@@ -36,10 +36,12 @@ features = [
   'HtmlCanvasElement',
   'KeyboardEvent',
   'MouseEventInit',
+  'WebGlTransformFeedback',
   'WebGlBuffer',
   'WebGlProgram',
   'WebGl2RenderingContext',
   'WebGlShader',
   'WebGlUniformLocation',
+  'WebGlVertexArrayObject',
   'Window',
 ]

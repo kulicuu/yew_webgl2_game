@@ -98,11 +98,11 @@ impl SubAssign<Duration> for Instant { fn sub_assign(&mut self, other: Duration)
 
 pub enum Msg {}
 
-pub struct GameThree {
+pub struct Particles {
     node_ref: Arc<NodeRef>,
 }
 
-impl Component for GameThree {
+impl Component for Particles {
     type Message = Msg;
     type Properties = ();
     fn create(_ctx: &Context<Self>) -> Self {
@@ -275,9 +275,6 @@ fn render_game
     gl.buffer_data_with_array_buffer_view(GL::UNIFORM_BUFFER, &mass_uniform_data_js, GL::STATIC_DRAW);
 
 
-    
-
-
     let mut switch = Arc::new(Mutex::new(AtomicBool::new(true)));
 
     let game_state = create_game_state().unwrap();
@@ -288,8 +285,8 @@ fn render_game
     // let game_state = game_state.clone();
     let mut cursor = game_state.lock().unwrap().start_time.elapsed().as_millis();
 
-    gl.clear_color(0.99, 0.99, 0.99, 1.0);
-    // gl.clear_color(0.01, 0.01, 0.01, 1.0);
+    // gl.clear_color(0.99, 0.99, 0.99, 1.0);
+    gl.clear_color(0.01, 0.01, 0.01, 1.0);
     gl.enable(GL::BLEND);
     gl.blend_func(GL::ONE, GL::ONE_MINUS_SRC_ALPHA);
 
@@ -304,46 +301,46 @@ fn render_game
         
         gl.clear(GL::COLOR_BUFFER_BIT);
 
-        // draw_particles(
-        //     gl.clone(),
-        //     particles_shader_program.clone(),
-        //     vertex_array_a.clone(),
-        //     vertex_array_b.clone(),
-        //     current_vertex_array.clone(),
-        //     current_transform_feedback.clone(),
-        //     transform_feedback_a.clone(),
-        //     transform_feedback_b.clone(),
-        //     position_buffer_a.clone(),
-        //     velocity_buffer_a.clone(),
-        //     position_buffer_b.clone(),
-        //     velocity_buffer_b.clone(),
-        //     switch.clone(),
-        // );
+        draw_particles(
+            gl.clone(),
+            particles_shader_program.clone(),
+            vertex_array_a.clone(),
+            vertex_array_b.clone(),
+            current_vertex_array.clone(),
+            current_transform_feedback.clone(),
+            transform_feedback_a.clone(),
+            transform_feedback_b.clone(),
+            position_buffer_a.clone(),
+            velocity_buffer_a.clone(),
+            position_buffer_b.clone(),
+            velocity_buffer_b.clone(),
+            switch.clone(),
+        );
 
         let game_state = update_game_state(time_delta, game_state.clone()).unwrap();
-        draw_players(
-            gl.clone(),
-            game_state.clone(),
-            player_vertex_buffer.clone(),
-            player_js_vertices.clone(),
-            player_shader_program.clone(),
-            player_vertices_position.clone(),
-            time_location.clone(),
-            player_pos_deltas_loc.clone(),
-            player_vifo_theta_loc.clone(),
-        );
+        // draw_players(
+        //     gl.clone(),
+        //     game_state.clone(),
+        //     player_vertex_buffer.clone(),
+        //     player_js_vertices.clone(),
+        //     player_shader_program.clone(),
+        //     player_vertices_position.clone(),
+        //     time_location.clone(),
+        //     player_pos_deltas_loc.clone(),
+        //     player_vifo_theta_loc.clone(),
+        // );
 
-        draw_torps(
-            gl.clone(),
-            game_state.clone(),
-            torp_vertex_buffer.clone(),
-            torp_js_vertices.clone(),
-            torp_shader_program.clone(),
-            torp_vertices_position.clone(),
-            time_location_2.clone(),
-            torp_pos_deltas_loc.clone(),
-            torp_vifo_theta_loc.clone(),
-        );
+        // draw_torps(
+        //     gl.clone(),
+        //     game_state.clone(),
+        //     torp_vertex_buffer.clone(),
+        //     torp_js_vertices.clone(),
+        //     torp_shader_program.clone(),
+        //     torp_vertices_position.clone(),
+        //     time_location_2.clone(),
+        //     torp_pos_deltas_loc.clone(),
+        //     torp_vifo_theta_loc.clone(),
+        // );
 
         request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
     }) as Box<dyn FnMut()>));
