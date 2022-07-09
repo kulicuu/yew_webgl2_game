@@ -165,7 +165,409 @@ fn render_game
         time_location_2,
     ) = setup_torp_shaders(gl.clone()).unwrap();
 
+    // let particles_shader_program = setup_particle_shaders(gl.clone()).unwrap();
 
+    // let mass_uniforms_location = Arc::new(Mutex::new(gl.get_uniform_block_index(&particles_shader_program, "Mass")));
+
+    // gl.uniform_block_binding(&particles_shader_program, *mass_uniforms_location.lock().unwrap(), 0);
+
+    // let position_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
+    // let velocity_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES *3) as usize]));
+    // let color_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
+
+    // for i in 0..NUM_PARTICLES {
+    //     let vec3i : usize = (i as usize) * 3;
+
+    //     position_data.lock().unwrap()[vec3i] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
+    //     position_data.lock().unwrap()[vec3i + 1] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
+    //     position_data.lock().unwrap()[vec3i + 2] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
+
+    //     color_data.lock().unwrap()[vec3i] = js_sys::Math::random() as f32;
+    //     color_data.lock().unwrap()[vec3i + 1] = js_sys::Math::random() as f32;
+    //     color_data.lock().unwrap()[vec3i + 2] = js_sys::Math::random() as f32;
+    // }
+
+    // let vertex_array_a = Arc::new(gl.create_vertex_array().unwrap());
+    // gl.bind_vertex_array(Some(&vertex_array_a));
+
+    // let position_buffer_a = Arc::new(gl.create_buffer().unwrap());
+    // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_a));
+    // let position_data_js = js_sys::Float32Array::from(position_data.lock().unwrap().as_slice());
+    // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
+    // gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
+    // gl.enable_vertex_attrib_array(0);
+
+    // let velocity_buffer_a = Arc::new(gl.create_buffer().unwrap());
+    // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_a));
+    // let velocity_data_js = js_sys::Float32Array::from(velocity_data.lock().unwrap().as_slice());
+    // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
+    // gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
+    // gl.enable_vertex_attrib_array(1);
+
+    // let color_buffer = Arc::new(gl.create_buffer().unwrap());
+    // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
+    // let color_data_js = js_sys::Float32Array::from(color_data.lock().unwrap().as_slice());
+    // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &color_data_js, GL::STATIC_DRAW);
+    // gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
+    // gl.enable_vertex_attrib_array(2);
+
+    // gl.bind_buffer(GL::ARRAY_BUFFER, None);
+
+    // // Transform feedback handles output 
+    // // https://github.com/tsherif/webgl2examples/blob/master/particles.html
+
+    // let transform_feedback_a = Arc::new(gl.create_transform_feedback().unwrap());
+    // gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_a));
+    // gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_a));
+    // gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_a));
+
+    // let vertex_array_b = Arc::new(gl.create_vertex_array().unwrap());
+    // gl.bind_vertex_array(Some(&vertex_array_b));
+
+    // let position_buffer_b = Arc::new(gl.create_buffer().unwrap());
+    // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_b));
+    // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
+    // gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
+    // gl.enable_vertex_attrib_array(0);
+
+    // let velocity_buffer_b = Arc::new((gl.create_buffer().unwrap()));
+    // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_b));
+    // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
+    // gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
+    // gl.enable_vertex_attrib_array(1);
+
+    // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
+    // gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
+    // gl.enable_vertex_attrib_array(2);
+
+    // gl.bind_buffer(GL::ARRAY_BUFFER, None);
+
+    // let transform_feedback_b = Arc::new(gl.create_transform_feedback().unwrap());
+    // gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_b));
+    // gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_b));
+    // gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_b));
+
+    // gl.bind_vertex_array(None);
+    // gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, None);
+
+    // let mut current_vertex_array : Arc<Mutex<_>> = Arc::new(Mutex::new((*vertex_array_a).clone()));
+    // let mut current_transform_feedback : Arc<Mutex<_>> = Arc::new(Mutex::new((*transform_feedback_b).clone()));
+
+    // let mut mass_uniform_data : [f32; 20] = [0.0; 20];
+
+    // let localized_scale = 0.5;
+    // let correction = localized_scale / 2.0;
+
+    // mass_uniform_data[0] = (js_sys::Math::random() / ((NUM_PARTICLES as f64) * 1.5)) as f32;
+    // mass_uniform_data[1] = (js_sys::Math::random() / ((NUM_PARTICLES as f64) * 1.5)) as f32;
+    // mass_uniform_data[2] = (js_sys::Math::random() / (NUM_PARTICLES as f64) * 1.5) as f32;
+
+    // mass_uniform_data[4] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+    // mass_uniform_data[5] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+    // mass_uniform_data[6] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+
+    // mass_uniform_data[8] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+    // mass_uniform_data[9] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+    // mass_uniform_data[10] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+
+    // mass_uniform_data[16] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+    // mass_uniform_data[17] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+    // mass_uniform_data[18] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+
+    // let mass_uniform_buffer = gl.create_buffer();
+    // gl.bind_buffer_base(GL::UNIFORM_BUFFER, 0, mass_uniform_buffer.as_ref());
+    // let mass_uniform_data_js = js_sys::Float32Array::from(mass_uniform_data.as_slice());
+    
+    // gl.buffer_data_with_array_buffer_view(GL::UNIFORM_BUFFER, &mass_uniform_data_js, GL::STATIC_DRAW);
+
+
+    let (
+        particles_shader_program,
+        vertex_array_a,
+        vertex_array_b,
+        mut current_vertex_array,
+        mut current_transform_feedback,
+        transform_feedback_a,
+        transform_feedback_b,
+        position_buffer_a,
+        velocity_buffer_a, 
+        position_buffer_b,
+        velocity_buffer_b,
+    ) = prepare_explosion(gl.clone()).unwrap();
+
+
+
+    let mut switch = Arc::new(Mutex::new(AtomicBool::new(true)));
+    let game_state = create_game_state().unwrap();
+
+    set_player_one_events(game_state.clone());
+    set_player_two_events(game_state.clone());
+
+    let mut cursor = game_state.lock().unwrap().start_time.elapsed().as_millis();
+
+    gl.clear_color(0.99, 0.99, 0.99, 1.0);
+    // gl.clear_color(0.01, 0.01, 0.01, 1.0);
+    gl.enable(GL::BLEND);
+    gl.blend_func(GL::ONE, GL::ONE_MINUS_SRC_ALPHA);
+
+    let bare_shader_program = setup_bare_test_shaders(gl.clone()).unwrap();
+    let mut diag_counter = 0; 
+
+    let render_loop_closure = Rc::new(RefCell::new(None));
+    let alias_rlc = render_loop_closure.clone();
+
+    let mut prepped : bool = false;
+
+    *alias_rlc.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+        let now = game_state.lock().unwrap().start_time.elapsed().as_millis();
+        let time_delta = now - cursor;
+        cursor = now;
+        gl.clear(GL::COLOR_BUFFER_BIT);
+        let game_state = update_game_state(time_delta, game_state.clone()).unwrap();
+
+
+        let torp_kill_p1 = game_state.lock().unwrap().torp_kill_player_one;
+
+        // if !prepped {
+        //     let (
+        //         particles_shader_program,
+        //         vertex_array_a,
+        //         vertex_array_b,
+        //         mut current_vertex_array,
+        //         mut current_transform_feedback,
+        //         transform_feedback_a,
+        //         transform_feedback_b,
+        //         position_buffer_a,
+        //         velocity_buffer_a, 
+        //         position_buffer_b,
+        //         velocity_buffer_b,
+        //     ) = prepare_explosion(gl.clone()).unwrap();
+        //     prepped = true;
+
+
+
+        // }
+
+        
+        if diag_counter > 5 {
+            // log!("on");
+            draw_explosion(
+                gl.clone(),
+                particles_shader_program.clone(),
+                vertex_array_a.clone(),
+                vertex_array_b.clone(),
+                current_vertex_array.clone(),
+                current_transform_feedback.clone(),
+                transform_feedback_a.clone(),
+                transform_feedback_b.clone(),
+                position_buffer_a.clone(),
+                velocity_buffer_a.clone(), 
+                position_buffer_b.clone(),
+                velocity_buffer_b.clone(),
+                switch.clone(),
+            );
+            
+        }
+
+        diag_counter += 1;
+        if let Some((x, y)) = torp_kill_p1 {
+    
+            // make explosion at x, y
+            // so we will call a variant of draw_particles from here, not from the main closure.
+            // nah probably better to do separated draw_player_one and draw_player_two functions.
+            // inject the x,y into the new draw_explosion function.
+            draw_explosion(
+                gl.clone(),
+                particles_shader_program.clone(),
+                vertex_array_a.clone(),
+                vertex_array_b.clone(),
+                current_vertex_array.clone(),
+                current_transform_feedback.clone(),
+                transform_feedback_a.clone(),
+                transform_feedback_b.clone(),
+                position_buffer_a.clone(),
+                velocity_buffer_a.clone(), 
+                position_buffer_b.clone(),
+                velocity_buffer_b.clone(),
+                switch.clone(),
+            );    
+    
+        } else {
+            // draw_explosion(
+            //     gl.clone(),
+            //     particles_shader_program.clone(),
+            //     vertex_array_a.clone(),
+            //     vertex_array_b.clone(),
+            //     current_vertex_array.clone(),
+            //     current_transform_feedback.clone(),
+            //     transform_feedback_a.clone(),
+            //     transform_feedback_b.clone(),
+            //     position_buffer_a.clone(),
+            //     velocity_buffer_a.clone(), 
+            //     position_buffer_b.clone(),
+            //     velocity_buffer_b.clone(),
+            //     switch.clone(),
+            // );
+            draw_player_one(
+                gl.clone(),
+                game_state.clone(),
+                player_vertex_buffer.clone(),
+                player_js_vertices.clone(),
+                player_shader_program.clone(),
+                player_vertices_position.clone(),
+                time_location.clone(),
+                player_pos_deltas_loc.clone(),
+                player_vifo_theta_loc.clone(),
+            );
+
+        }
+
+
+
+
+
+        draw_player_two(
+            gl.clone(),
+            game_state.clone(),
+            player_vertex_buffer.clone(),
+            player_js_vertices.clone(),
+            player_shader_program.clone(),
+            player_vertices_position.clone(),
+            time_location.clone(),
+            player_pos_deltas_loc.clone(),
+            player_vifo_theta_loc.clone(),
+        );
+
+
+
+        draw_torps(
+            gl.clone(),
+            game_state.clone(),
+            torp_vertex_buffer.clone(),
+            torp_js_vertices.clone(),
+            torp_shader_program.clone(),
+            torp_vertices_position.clone(),
+            time_location_2.clone(),
+            torp_pos_deltas_loc.clone(),
+            torp_vifo_theta_loc.clone(),
+        );
+
+
+
+
+
+        request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
+    }) as Box<dyn FnMut()>));
+
+
+    request_animation_frame(alias_rlc.borrow().as_ref().unwrap());
+}
+
+fn request_animation_frame(f: &Closure<dyn FnMut()>) {
+    window().unwrap()
+        .request_animation_frame(f.as_ref().unchecked_ref())
+        .expect("should register `requestAnimationFrame` OK");
+}
+
+fn setup_bare_test_shaders
+<'a>
+(
+    gl: Arc<GL>,
+)
+-> Result<Arc<web_sys::WebGlProgram>, &'a str>
+{
+    let vert_code = include_str!("../shaders/bare.vert");
+    let frag_code = include_str!("../shaders/bare.frag");
+    let vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
+    let frag_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
+    gl.shader_source(&vert_shader, vert_code);
+    gl.shader_source(&frag_shader, frag_code);
+    let vert_log = gl.get_shader_info_log(&vert_shader);
+    let frag_log = gl.get_shader_info_log(&frag_shader);
+    log!("vert log", vert_log);
+    log!("frag log", frag_log);
+
+    let shader_program = gl.create_program().unwrap();
+    gl.attach_shader(&shader_program, &vert_shader);
+    gl.attach_shader(&shader_program, &frag_shader);
+    gl.link_program(&shader_program);
+
+    Ok(Arc::new(shader_program))
+}
+
+fn draw_bare_test
+(
+    gl: Arc<GL>,
+    shader_program: Arc<web_sys::WebGlProgram>,
+)
+{
+    gl.use_program(Some(&shader_program));
+}
+
+
+
+
+struct ExplosionPrecursors {
+    shader_program: Arc<web_sys::WebGlProgram>, 
+    vertex_array_a: Arc<web_sys::WebGlVertexArrayObject>, 
+    vertex_array_b: Arc<web_sys::WebGlVertexArrayObject>, 
+    current_vertex_array: Arc<Mutex<web_sys::WebGlVertexArrayObject>>,  
+    current_transform_feedback: Arc<Mutex<web_sys::WebGlTransformFeedback>>, 
+    transform_feedback_a:  Arc<web_sys::WebGlTransformFeedback>,
+    transform_feedback_b: Arc<web_sys::WebGlTransformFeedback>,
+    position_buffer_a: Arc<web_sys::WebGlBuffer>, 
+    velocity_buffer_a: Arc<web_sys::WebGlBuffer>,
+    position_buffer_b: Arc<web_sys::WebGlBuffer>,
+    velocity_buffer_b: Arc<web_sys::WebGlBuffer>, 
+}
+
+
+
+struct SingleExplosionPrecursors {
+    fn take(&)
+}
+impl SingleExplosionPrecursors {
+    fn take_shader_program(&mut self) -> Arc<web_sys::WebGlProgram {
+        let shader_program = replace(&mut self.shader_program, None);
+        shader_program.unwrap()
+    }
+    fn take_tuple(&mut self) -> (
+        shader_program: Arc<web_sys::WebGlProgram>, 
+        vertex_array_a: Arc<web_sys::WebGlVertexArrayObject>, 
+        vertex_array_b: Arc<web_sys::WebGlVertexArrayObject>, 
+        current_vertex_array: Arc<Mutex<web_sys::WebGlVertexArrayObject>>,  
+        current_transform_feedback: Arc<Mutex<web_sys::WebGlTransformFeedback>>, 
+        transform_feedback_a:  Arc<web_sys::WebGlTransformFeedback>,
+        transform_feedback_b: Arc<web_sys::WebGlTransformFeedback>,
+        position_buffer_a: Arc<web_sys::WebGlBuffer>, 
+        velocity_buffer_a: Arc<web_sys::WebGlBuffer>,
+        position_buffer_b: Arc<web_sys::WebGlBuffer>,
+        velocity_buffer_b: Arc<web_sys::WebGlBuffer>,  
+    )
+}
+
+
+
+fn prepare_explosion
+<'a>
+(
+    gl: Arc<GL>,
+)
+-> Result<(
+    Arc<web_sys::WebGlProgram>, // shader_program
+    Arc<web_sys::WebGlVertexArrayObject>, // vertex_array_a
+    Arc<web_sys::WebGlVertexArrayObject>, // vertex_array_b
+    Arc<Mutex<web_sys::WebGlVertexArrayObject>>, // mut current_vertex_array: 
+    Arc<Mutex<web_sys::WebGlTransformFeedback>>, // mut current_transform_feedback: 
+    Arc<web_sys::WebGlTransformFeedback>, // transform_feedback_a: 
+    Arc<web_sys::WebGlTransformFeedback>, // transform_feedback_b: 
+    
+    Arc<web_sys::WebGlBuffer>, // position_buffer_a: 
+    Arc<web_sys::WebGlBuffer>, // velocity_buffer_a: 
+    Arc<web_sys::WebGlBuffer>, // position_buffer_b:
+    Arc<web_sys::WebGlBuffer>, // velocity_buffer_b: 
+), &'a str>
+{
     let particles_shader_program = setup_particle_shaders(gl.clone()).unwrap();
 
     let mass_uniforms_location = Arc::new(Mutex::new(gl.get_uniform_block_index(&particles_shader_program, "Mass")));
@@ -248,11 +650,160 @@ fn render_game
     gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_b));
     gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_b));
 
-    gl.bind_vertex_array(None);
-    gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, None);
+    let mut current_vertex_array : Arc<Mutex<_>> = Arc::new(Mutex::new((*vertex_array_a).clone()));
+    let mut current_transform_feedback : Arc<Mutex<_>> = Arc::new(Mutex::new((*transform_feedback_b).clone()));
+
+    Ok((
+        particles_shader_program,
+        vertex_array_a,
+        vertex_array_b,
+        current_vertex_array,
+        current_transform_feedback,
+        transform_feedback_a,
+        transform_feedback_b,
+        position_buffer_a,
+        velocity_buffer_a, 
+        position_buffer_b,
+        velocity_buffer_b,
+    ))
+
+}
+
+
+fn prepare_explosion_782
+<'a>
+(
+    gl: Arc<GL>,
+)
+-> Result<Arc<ExplosionPrecursors>, &'a str>
+{
+    let particles_shader_program = setup_particle_shaders(gl.clone()).unwrap();
+
+    let mass_uniforms_location = Arc::new(Mutex::new(gl.get_uniform_block_index(&particles_shader_program, "Mass")));
+
+    gl.uniform_block_binding(&particles_shader_program, *mass_uniforms_location.lock().unwrap(), 0);
+
+    let position_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
+    let velocity_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES *3) as usize]));
+    let color_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
+
+    for i in 0..NUM_PARTICLES {
+        let vec3i : usize = (i as usize) * 3;
+
+        position_data.lock().unwrap()[vec3i] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
+        position_data.lock().unwrap()[vec3i + 1] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
+        position_data.lock().unwrap()[vec3i + 2] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
+
+        color_data.lock().unwrap()[vec3i] = js_sys::Math::random() as f32;
+        color_data.lock().unwrap()[vec3i + 1] = js_sys::Math::random() as f32;
+        color_data.lock().unwrap()[vec3i + 2] = js_sys::Math::random() as f32;
+    }
+
+    let vertex_array_a = Arc::new(gl.create_vertex_array().unwrap());
+    gl.bind_vertex_array(Some(&vertex_array_a));
+
+    let position_buffer_a = Arc::new(gl.create_buffer().unwrap());
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_a));
+    let position_data_js = js_sys::Float32Array::from(position_data.lock().unwrap().as_slice());
+    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
+    gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(0);
+
+    let velocity_buffer_a = Arc::new(gl.create_buffer().unwrap());
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_a));
+    let velocity_data_js = js_sys::Float32Array::from(velocity_data.lock().unwrap().as_slice());
+    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
+    gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(1);
+
+    let color_buffer = Arc::new(gl.create_buffer().unwrap());
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
+    let color_data_js = js_sys::Float32Array::from(color_data.lock().unwrap().as_slice());
+    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &color_data_js, GL::STATIC_DRAW);
+    gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(2);
+
+    gl.bind_buffer(GL::ARRAY_BUFFER, None);
+
+    // Transform feedback handles output 
+    // https://github.com/tsherif/webgl2examples/blob/master/particles.html
+
+    let transform_feedback_a = Arc::new(gl.create_transform_feedback().unwrap());
+    gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_a));
+    gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_a));
+    gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_a));
+
+    let vertex_array_b = Arc::new(gl.create_vertex_array().unwrap());
+    gl.bind_vertex_array(Some(&vertex_array_b));
+
+    let position_buffer_b = Arc::new(gl.create_buffer().unwrap());
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_b));
+    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
+    gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(0);
+
+    let velocity_buffer_b = Arc::new((gl.create_buffer().unwrap()));
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_b));
+    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
+    gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(1);
+
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
+    gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(2);
+
+    gl.bind_buffer(GL::ARRAY_BUFFER, None);
+
+    let transform_feedback_b = Arc::new(gl.create_transform_feedback().unwrap());
+    gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_b));
+    gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_b));
+    gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_b));
 
     let mut current_vertex_array : Arc<Mutex<_>> = Arc::new(Mutex::new((*vertex_array_a).clone()));
     let mut current_transform_feedback : Arc<Mutex<_>> = Arc::new(Mutex::new((*transform_feedback_b).clone()));
+
+
+    Ok((Arc::new(ExplosionPrecursors {
+
+
+    })))
+
+    Ok((
+        particles_shader_program,
+        vertex_array_a,
+        vertex_array_b,
+        current_vertex_array,
+        current_transform_feedback,
+        transform_feedback_a,
+        transform_feedback_b,
+        position_buffer_a,
+        velocity_buffer_a, 
+        position_buffer_b,
+        velocity_buffer_b,
+    ))
+
+}
+
+fn draw_explosion
+(
+    gl: Arc<GL>,
+    shader_program: Arc<web_sys::WebGlProgram>,
+    vertex_array_a: Arc<web_sys::WebGlVertexArrayObject>,
+    vertex_array_b: Arc<web_sys::WebGlVertexArrayObject>,
+    mut current_vertex_array: Arc<Mutex<web_sys::WebGlVertexArrayObject>>,
+    mut current_transform_feedback: Arc<Mutex<web_sys::WebGlTransformFeedback>>,
+    transform_feedback_a: Arc<web_sys::WebGlTransformFeedback>,
+    transform_feedback_b: Arc<web_sys::WebGlTransformFeedback>,
+    position_buffer_a: Arc<web_sys::WebGlBuffer>,
+    velocity_buffer_a: Arc<web_sys::WebGlBuffer>,
+    position_buffer_b: Arc<web_sys::WebGlBuffer>,
+    velocity_buffer_b: Arc<web_sys::WebGlBuffer>,
+    switch: Arc<Mutex<AtomicBool>>,
+)
+{
+
+    gl.bind_vertex_array(None);
+    gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, None);
 
     let mut mass_uniform_data : [f32; 20] = [0.0; 20];
 
@@ -281,155 +832,12 @@ fn render_game
     
     gl.buffer_data_with_array_buffer_view(GL::UNIFORM_BUFFER, &mass_uniform_data_js, GL::STATIC_DRAW);
 
-    let mut switch = Arc::new(Mutex::new(AtomicBool::new(true)));
-
-    let game_state = create_game_state().unwrap();
-
-    set_player_one_events(game_state.clone());
-    set_player_two_events(game_state.clone());
-
-    // let game_state = game_state.clone();
-    let mut cursor = game_state.lock().unwrap().start_time.elapsed().as_millis();
-
-    gl.clear_color(0.99, 0.99, 0.99, 1.0);
-    // gl.clear_color(0.01, 0.01, 0.01, 1.0);
-    gl.enable(GL::BLEND);
-    gl.blend_func(GL::ONE, GL::ONE_MINUS_SRC_ALPHA);
-
-
-    let bare_shader_program = setup_bare_test_shaders(gl.clone()).unwrap();
-
-    let render_loop_closure = Rc::new(RefCell::new(None));
-    let alias_rlc = render_loop_closure.clone();
-    *alias_rlc.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-        let now = game_state.lock().unwrap().start_time.elapsed().as_millis();
-        let time_delta = now - cursor;
-        cursor = now;
-
-        
-        gl.clear(GL::COLOR_BUFFER_BIT);
-
-        let game_state = update_game_state(time_delta, game_state.clone()).unwrap();
-        draw_players(
-            gl.clone(),
-            game_state.clone(),
-            player_vertex_buffer.clone(),
-            player_js_vertices.clone(),
-            player_shader_program.clone(),
-            player_vertices_position.clone(),
-            time_location.clone(),
-            player_pos_deltas_loc.clone(),
-            player_vifo_theta_loc.clone(),
-        );
-
-        draw_torps(
-            gl.clone(),
-            game_state.clone(),
-            torp_vertex_buffer.clone(),
-            torp_js_vertices.clone(),
-            torp_shader_program.clone(),
-            torp_vertices_position.clone(),
-            time_location_2.clone(),
-            torp_pos_deltas_loc.clone(),
-            torp_vifo_theta_loc.clone(),
-        );
-
-        // draw_bare_test(
-        //     gl.clone(),
-        //     bare_shader_program.clone(),
-        // );
-
-        draw_particles(
-            gl.clone(),
-            particles_shader_program.clone(),
-            vertex_array_a.clone(),
-            vertex_array_b.clone(),
-            current_vertex_array.clone(),
-            current_transform_feedback.clone(),
-            transform_feedback_a.clone(),
-            transform_feedback_b.clone(),
-            position_buffer_a.clone(),
-            velocity_buffer_a.clone(),
-            position_buffer_b.clone(),
-            velocity_buffer_b.clone(),
-            switch.clone(),
-        );
-
-        request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
-    }) as Box<dyn FnMut()>));
-
-    request_animation_frame(alias_rlc.borrow().as_ref().unwrap());
-
-}
-
-fn request_animation_frame(f: &Closure<dyn FnMut()>) {
-    window().unwrap()
-        .request_animation_frame(f.as_ref().unchecked_ref())
-        .expect("should register `requestAnimationFrame` OK");
-}
-
-fn setup_bare_test_shaders
-<'a>
-(
-    gl: Arc<GL>,
-)
--> Result<Arc<web_sys::WebGlProgram>, &'a str>
-{
-    let vert_code = include_str!("../shaders/bare.vert");
-    let frag_code = include_str!("../shaders/bare.frag");
-    let vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
-    let frag_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
-    gl.shader_source(&vert_shader, vert_code);
-    gl.shader_source(&frag_shader, frag_code);
-    let vert_log = gl.get_shader_info_log(&vert_shader);
-    let frag_log = gl.get_shader_info_log(&frag_shader);
-    log!("vert log", vert_log);
-    log!("frag log", frag_log);
-
-    let shader_program = gl.create_program().unwrap();
-    gl.attach_shader(&shader_program, &vert_shader);
-    gl.attach_shader(&shader_program, &frag_shader);
-    gl.link_program(&shader_program);
-
-    Ok(Arc::new(shader_program))
-}
-
-fn draw_bare_test
-(
-    gl: Arc<GL>,
-    shader_program: Arc<web_sys::WebGlProgram>,
-)
-{
-    gl.use_program(Some(&shader_program));
-}
-
-
-fn draw_particles
-(
-    gl: Arc<GL>,
-    shader_program: Arc<web_sys::WebGlProgram>,
-    vertex_array_a: Arc<web_sys::WebGlVertexArrayObject>,
-    vertex_array_b: Arc<web_sys::WebGlVertexArrayObject>,
-    mut current_vertex_array: Arc<Mutex<web_sys::WebGlVertexArrayObject>>,
-    mut current_transform_feedback: Arc<Mutex<web_sys::WebGlTransformFeedback>>,
-    transform_feedback_a: Arc<web_sys::WebGlTransformFeedback>,
-    transform_feedback_b: Arc<web_sys::WebGlTransformFeedback>,
-    
-    position_buffer_a: Arc<web_sys::WebGlBuffer>,
-    velocity_buffer_a: Arc<web_sys::WebGlBuffer>,
-    position_buffer_b: Arc<web_sys::WebGlBuffer>,
-    velocity_buffer_b: Arc<web_sys::WebGlBuffer>,
-    switch: Arc<Mutex<AtomicBool>>,
-)   
-{
     gl.use_program(Some(&shader_program));
     gl.bind_vertex_array(Some(current_vertex_array.lock().unwrap().as_ref()));
     gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(current_transform_feedback.lock().unwrap().as_ref()));
 
     let s = *switch.lock().unwrap().get_mut();
 
-
-    // if *current_transform_feedback.lock().unwrap() == *transform_feedback_a.lock().unwrap() {
     if !s {
         // log!("tic");
         gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_a));
@@ -459,6 +867,55 @@ fn draw_particles
 
     gl.bind_vertex_array(None);
 
+}
+
+
+
+fn draw_particles
+(
+    gl: Arc<GL>,
+    shader_program: Arc<web_sys::WebGlProgram>,
+    vertex_array_a: Arc<web_sys::WebGlVertexArrayObject>,
+    vertex_array_b: Arc<web_sys::WebGlVertexArrayObject>,
+    mut current_vertex_array: Arc<Mutex<web_sys::WebGlVertexArrayObject>>,
+    mut current_transform_feedback: Arc<Mutex<web_sys::WebGlTransformFeedback>>,
+    transform_feedback_a: Arc<web_sys::WebGlTransformFeedback>,
+    transform_feedback_b: Arc<web_sys::WebGlTransformFeedback>,
+    position_buffer_a: Arc<web_sys::WebGlBuffer>,
+    velocity_buffer_a: Arc<web_sys::WebGlBuffer>,
+    position_buffer_b: Arc<web_sys::WebGlBuffer>,
+    velocity_buffer_b: Arc<web_sys::WebGlBuffer>,
+    switch: Arc<Mutex<AtomicBool>>,
+)   
+{
+    gl.use_program(Some(&shader_program));
+    gl.bind_vertex_array(Some(current_vertex_array.lock().unwrap().as_ref()));
+    gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(current_transform_feedback.lock().unwrap().as_ref()));
+    let s = *switch.lock().unwrap().get_mut();
+    if !s {
+        // log!("tic");
+        gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_a));
+        gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_a));
+    } else {
+        // log!("tac");
+        gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_b));
+        gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_b));
+    }
+    gl.begin_transform_feedback(GL::POINTS);
+    gl.draw_arrays(GL::POINTS, 0, NUM_PARTICLES as i32);
+    gl.end_transform_feedback();
+    if s {
+        // log!("a");
+        *current_vertex_array.lock().unwrap() = (*vertex_array_b).clone();
+        *current_transform_feedback.lock().unwrap() = (*transform_feedback_a).clone();
+    } else 
+    {
+        // log!("b");
+        *current_vertex_array.lock().unwrap() = (*vertex_array_a).clone();
+        *current_transform_feedback.lock().unwrap() = (*transform_feedback_b).clone();
+    }
+    *switch.lock().unwrap().get_mut() = !s; 
+    gl.bind_vertex_array(None);
 }
 
 fn setup_torp_shaders
@@ -790,10 +1247,12 @@ fn draw_torps
         gl.uniform1f(Some(&torp_vifo_theta_loc), torp_vifo_theta.0);
         gl.draw_arrays(GL::TRIANGLES, 0, 6);
     }
+
+    gl.bind_buffer(GL::ARRAY_BUFFER, None);
 }
 
-fn draw_players
-// <'a>
+
+fn draw_player_one
 (
     gl: Arc<GL>,
     game_state: Arc<Mutex<GameState>>,
@@ -810,34 +1269,105 @@ fn draw_players
     gl.bind_buffer(GL::ARRAY_BUFFER, Some(&player_vertex_buffer));
     gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &player_js_vertices, GL::STATIC_DRAW);
     gl.vertex_attrib_pointer_with_i32(*player_vertices_position, 2, GL::FLOAT, false, 0, 0);
-    // gl.vertex_attrib_pointer_with_i32(*player_vertices_position, 2, GL::FLOAT, false, 0, 0);
-    gl.enable_vertex_attrib_array(*player_vertices_position);
-
-    
+    gl.enable_vertex_attrib_array(*player_vertices_position);    
     gl.uniform1f(Some(&time_location), 0.4 as f32);
-
     let new_pos_dx = game_state.lock().unwrap().player_one.lock().unwrap().position_dx;
     let new_pos_dy = game_state.lock().unwrap().player_one.lock().unwrap().position_dy;
-
-    gl.uniform2f(Some(&player_pos_deltas_loc), new_pos_dx, new_pos_dy);
-    
+    gl.uniform2f(Some(&player_pos_deltas_loc), new_pos_dx, new_pos_dy);   
     let new_vifo_theta = game_state.lock().unwrap().player_one.lock().unwrap().vifo_theta;
     gl.uniform1f(Some(&player_vifo_theta_loc), new_vifo_theta.0);
     gl.draw_arrays(GL::TRIANGLES, 0, 6);
-    // gl.bind_buffer(GL::ARRAY_BUFFER, None);
+    gl.bind_buffer(GL::ARRAY_BUFFER, None);
 
-    // let new_pos_dx = game_state.lock().unwrap().player_two.lock().unwrap().position_dx;
-    // let new_pos_dy = game_state.lock().unwrap().player_two.lock().unwrap().position_dy;
-
-    // gl.uniform2f(Some(&player_pos_deltas_loc), new_pos_dx, new_pos_dy);
-    
-    // let new_vifo_theta = game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta;
-    // gl.uniform1f(Some(&player_vifo_theta_loc), new_vifo_theta.0);
-    // gl.draw_arrays(GL::TRIANGLES, 0, 6);
 }
 
-// fn update_positions 
-fn update_game_state // A slight misnomer, as game state is also mutated by event-handlers.
+fn draw_player_two
+(
+    gl: Arc<GL>,
+    game_state: Arc<Mutex<GameState>>,
+    player_vertex_buffer: Arc<WebGlBuffer>,
+    player_js_vertices: Arc<js_sys::Float32Array>,
+    shader_program: Arc<web_sys::WebGlProgram>,
+    player_vertices_position: Arc<u32>,
+    time_location: Arc<WebGlUniformLocation>,
+    player_pos_deltas_loc: Arc<WebGlUniformLocation>,
+    player_vifo_theta_loc: Arc<WebGlUniformLocation>,
+)
+{
+    gl.use_program(Some(&shader_program));
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&player_vertex_buffer));
+    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &player_js_vertices, GL::STATIC_DRAW);
+    gl.vertex_attrib_pointer_with_i32(*player_vertices_position, 2, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(*player_vertices_position);    
+    gl.uniform1f(Some(&time_location), 0.4 as f32);
+    let new_pos_dx = game_state.lock().unwrap().player_two.lock().unwrap().position_dx;
+    let new_pos_dy = game_state.lock().unwrap().player_two.lock().unwrap().position_dy;
+    gl.uniform2f(Some(&player_pos_deltas_loc), new_pos_dx, new_pos_dy);
+    let new_vifo_theta = game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta;
+    gl.uniform1f(Some(&player_vifo_theta_loc), new_vifo_theta.0);
+    gl.draw_arrays(GL::TRIANGLES, 0, 6);
+    gl.bind_buffer(GL::ARRAY_BUFFER, None);
+}
+
+
+fn draw_players
+(
+    gl: Arc<GL>,
+    game_state: Arc<Mutex<GameState>>,
+    player_vertex_buffer: Arc<WebGlBuffer>,
+    player_js_vertices: Arc<js_sys::Float32Array>,
+    shader_program: Arc<web_sys::WebGlProgram>,
+    player_vertices_position: Arc<u32>,
+    time_location: Arc<WebGlUniformLocation>,
+    player_pos_deltas_loc: Arc<WebGlUniformLocation>,
+    player_vifo_theta_loc: Arc<WebGlUniformLocation>,
+)
+{
+    gl.use_program(Some(&shader_program));
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&player_vertex_buffer));
+    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &player_js_vertices, GL::STATIC_DRAW);
+    gl.vertex_attrib_pointer_with_i32(*player_vertices_position, 2, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(*player_vertices_position);    
+    gl.uniform1f(Some(&time_location), 0.4 as f32);
+
+    let torp_kill_p1 = game_state.lock().unwrap().torp_kill_player_one;
+    if let Some((x, y)) = torp_kill_p1 {
+
+        // make explosion at x, y
+        // so we will call a variant of draw_particles from here, not from the main closure.
+        // nah probably better to do separated draw_player_one and draw_player_two functions.
+        // inject the x,y into the new draw_explosion function.
+
+
+    } else {
+        let new_pos_dx = game_state.lock().unwrap().player_one.lock().unwrap().position_dx;
+        let new_pos_dy = game_state.lock().unwrap().player_one.lock().unwrap().position_dy;
+    
+        gl.uniform2f(Some(&player_pos_deltas_loc), new_pos_dx, new_pos_dy);
+        
+        let new_vifo_theta = game_state.lock().unwrap().player_one.lock().unwrap().vifo_theta;
+        gl.uniform1f(Some(&player_vifo_theta_loc), new_vifo_theta.0);
+        gl.draw_arrays(GL::TRIANGLES, 0, 6);
+    
+
+    }
+
+
+
+
+
+
+    let new_pos_dx = game_state.lock().unwrap().player_two.lock().unwrap().position_dx;
+    let new_pos_dy = game_state.lock().unwrap().player_two.lock().unwrap().position_dy;
+
+    gl.uniform2f(Some(&player_pos_deltas_loc), new_pos_dx, new_pos_dy);
+    
+    let new_vifo_theta = game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta;
+    gl.uniform1f(Some(&player_vifo_theta_loc), new_vifo_theta.0);
+    gl.draw_arrays(GL::TRIANGLES, 0, 6);
+}
+
+fn update_game_state
 <'a>
 (
     time_delta: u128,
@@ -850,34 +1380,31 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
     let delta_scalar = (time_delta as f32) * 0.001;
     let old_pos_dx = game_state.lock().unwrap().player_one.lock().unwrap().position_dx;
     let additional_dx = game_state.lock().unwrap().player_one.lock().unwrap().velocity_dx * (delta_scalar as f32);
-    let mut new_pos_dx = old_pos_dx + additional_dx;
-    if new_pos_dx < -1.0 {
-        new_pos_dx = new_pos_dx + 2.0;
+    let mut p1_new_pos_dx = old_pos_dx + additional_dx;
+    if p1_new_pos_dx < -1.0 {
+        p1_new_pos_dx = p1_new_pos_dx + 2.0;
     }
-    if new_pos_dx > 1.0 {
-        new_pos_dx = new_pos_dx - 2.0;
+    if p1_new_pos_dx > 1.0 {
+        p1_new_pos_dx = p1_new_pos_dx - 2.0;
     }
     let old_pos_dy = game_state.lock().unwrap().player_one.lock().unwrap().position_dy;
     let additional_dy = game_state.lock().unwrap().player_one.lock().unwrap().velocity_dy * (delta_scalar as f32);
-    let mut new_pos_dy = old_pos_dy + additional_dy;
-    if new_pos_dy < -1.0 {
-        new_pos_dy += 2.0;
+    let mut p1_new_pos_dy = old_pos_dy + additional_dy;
+    if p1_new_pos_dy < -1.0 {
+        p1_new_pos_dy += 2.0;
     }
-    if new_pos_dy > 1.0 {
-        new_pos_dy -= 2.0;
+    if p1_new_pos_dy > 1.0 {
+        p1_new_pos_dy -= 2.0;
     }
 
-    game_state.lock().unwrap().player_one.lock().unwrap().position_dx = new_pos_dx;
-    game_state.lock().unwrap().player_one.lock().unwrap().position_dy = new_pos_dy;
-
+    game_state.lock().unwrap().player_one.lock().unwrap().position_dx = p1_new_pos_dx;
+    game_state.lock().unwrap().player_one.lock().unwrap().position_dy = p1_new_pos_dy;
 
     for i in -10..10 {
         for j in -10..10 {
-            let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
-            let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
-
-            let s_key : String = [base_dx.to_string(), String::from(":"), base_dy.to_string()].concat();
-            
+            let base_dx = ((p1_new_pos_dx * 1000.0) as i32) + i;
+            let base_dy = ((p1_new_pos_dx * 1000.0) as i32) + j;
+            let s_key : String = [base_dx.to_string(), String::from(":"), base_dy.to_string()].concat();            
             if collisions_map.contains_key(&s_key) {
                 let (k, mut tuple) = collisions_map.remove_entry(&s_key).unwrap();
                 tuple.0 = true;
@@ -911,11 +1438,10 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
     game_state.lock().unwrap().player_two.lock().unwrap().position_dx = new_pos_dx;
     game_state.lock().unwrap().player_two.lock().unwrap().position_dy = new_pos_dy;
 
-
-    for i in -10..10 {
-        for j in -10..10 {
+    for i in -5..5 {
+        for j in -5..5 {
             let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
-            let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
+            let base_dy = ((new_pos_dy * 1000.0) as i32) + j;
 
             let s_key : String = [base_dx.to_string(), String::from(":"), base_dy.to_string()].concat();
             
@@ -924,7 +1450,7 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
                 tuple.1 = true;
                 collisions_map.insert(k, tuple);
             } else {
-                let tuple : CollisionSpace = (true, false, vec![]);
+                let tuple : CollisionSpace = (false, true, vec![]);
                 collisions_map.insert(s_key, tuple);   
             }
         }
@@ -952,7 +1478,6 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
         let new_pos_dx = pos_dx + (delta_scalar * v_dx);
         let new_pos_dy = pos_dy + (delta_scalar * v_dy);
 
-
         torp.lock().unwrap().position_dx = new_pos_dx;
         torp.lock().unwrap().position_dy = new_pos_dy;
 
@@ -960,7 +1485,7 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
             for j in -5..5 {
 
                 let base_dx = ((new_pos_dx * 1000.0) as i32) + i;
-                let base_dy = ((new_pos_dx * 1000.0) as i32) + j;
+                let base_dy = ((new_pos_dy * 1000.0) as i32) + j;
     
                 let s_key : String = [base_dx.to_string(), String::from(":"), base_dy.to_string()].concat();
                 
@@ -970,16 +1495,23 @@ fn update_game_state // A slight misnomer, as game state is also mutated by even
                     tuple.2.push(idx);
                     collisions_map.insert(k, tuple);
                 } else {
-                    let tuple : CollisionSpace = (true, false, vec![]);
+                    let tuple : CollisionSpace = (false, false, vec![idx]);
                     collisions_map.insert(s_key, tuple);   
                 }
             }
         }        
     }
 
+
+    // log!("collisions_map.len() ", collisions_map.len());
     for (key, space) in collisions_map.iter() {
+        // log!("space.0 ", space.0);
+        // log!("space.1", space.1);
+        // log!("space.2", space.2.len());
         if (space.0 == true) && (space.2.len() > 0) {
-            log!("Torpedo kills player one.");
+            // log!("Key at kill: ", key);
+            // log!("Torpedo kills player one.");
+            game_state.lock().unwrap().torp_kill_player_one = Some((p1_new_pos_dx, p1_new_pos_dy));
         }
         if (space.0 == true) && (space.1 == true) {
             log!("vehicle collision");
@@ -1004,8 +1536,8 @@ fn create_game_state
     let mode = 0; // Notionally code for 2-player local.
 
     let player_one = Arc::new(Mutex::new(Vehicle_100 {
-        position_dx: 0.3,
-        position_dy: 0.3,
+        position_dx: 0.341,
+        position_dy: 0.283,
         vifo_theta: Rad(0.3),
         velocity_theta: Rad(0.3),
         velocity_scalar: 0.0,
@@ -1041,6 +1573,7 @@ fn create_game_state
         collisions_map: collisions_two,
         mode: Arc::new(mode),
         result: Arc::new(Mutex::new(0)),
+        torp_kill_player_one: None,
     };
 
     Ok(Arc::new(Mutex::new(game_state)))
@@ -1065,6 +1598,7 @@ struct GameState
     // This would be a good place to use Rust traits.
     result: Arc<Mutex<u8>>,
     mode: Arc<u8>, // 1 player vs computer, 2 player local, 2 player network
+    torp_kill_player_one: Option<(f32, f32)>,  // x,y position of the kill, or None,
 }
 
 #[derive(Copy, Clone)]
@@ -1078,6 +1612,6 @@ struct Vehicle_100 {
     velocity_scalar: f32,
     // redundant alternate description of velocity, cartesian
     velocity_dx: f32,
-    velocity_dy: f32, 
+    velocity_dy: f32,
 }
 
