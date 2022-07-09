@@ -297,15 +297,47 @@ fn render_game
     gl.blend_func(GL::ONE, GL::ONE_MINUS_SRC_ALPHA);
 
 
+    let bare_shader_program = setup_bare_test_shaders(gl.clone()).unwrap();
+
     let render_loop_closure = Rc::new(RefCell::new(None));
     let alias_rlc = render_loop_closure.clone();
     *alias_rlc.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-        // let now = game_state.lock().unwrap().start_time.elapsed().as_millis();
-        // let time_delta = now - cursor;
-        // cursor = now;
+        let now = game_state.lock().unwrap().start_time.elapsed().as_millis();
+        let time_delta = now - cursor;
+        cursor = now;
 
         
         gl.clear(GL::COLOR_BUFFER_BIT);
+
+        let game_state = update_game_state(time_delta, game_state.clone()).unwrap();
+        draw_players(
+            gl.clone(),
+            game_state.clone(),
+            player_vertex_buffer.clone(),
+            player_js_vertices.clone(),
+            player_shader_program.clone(),
+            player_vertices_position.clone(),
+            time_location.clone(),
+            player_pos_deltas_loc.clone(),
+            player_vifo_theta_loc.clone(),
+        );
+
+        draw_torps(
+            gl.clone(),
+            game_state.clone(),
+            torp_vertex_buffer.clone(),
+            torp_js_vertices.clone(),
+            torp_shader_program.clone(),
+            torp_vertices_position.clone(),
+            time_location_2.clone(),
+            torp_pos_deltas_loc.clone(),
+            torp_vifo_theta_loc.clone(),
+        );
+
+        // draw_bare_test(
+        //     gl.clone(),
+        //     bare_shader_program.clone(),
+        // );
 
         draw_particles(
             gl.clone(),
@@ -323,31 +355,6 @@ fn render_game
             switch.clone(),
         );
 
-        // let game_state = update_game_state(time_delta, game_state.clone()).unwrap();
-        // draw_players(
-        //     gl.clone(),
-        //     game_state.clone(),
-        //     player_vertex_buffer.clone(),
-        //     player_js_vertices.clone(),
-        //     player_shader_program.clone(),
-        //     player_vertices_position.clone(),
-        //     time_location.clone(),
-        //     player_pos_deltas_loc.clone(),
-        //     player_vifo_theta_loc.clone(),
-        // );
-
-        // draw_torps(
-        //     gl.clone(),
-        //     game_state.clone(),
-        //     torp_vertex_buffer.clone(),
-        //     torp_js_vertices.clone(),
-        //     torp_shader_program.clone(),
-        //     torp_vertices_position.clone(),
-        //     time_location_2.clone(),
-        //     torp_pos_deltas_loc.clone(),
-        //     torp_vifo_theta_loc.clone(),
-        // );
-
         request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
     }) as Box<dyn FnMut()>));
 
@@ -360,6 +367,42 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
         .request_animation_frame(f.as_ref().unchecked_ref())
         .expect("should register `requestAnimationFrame` OK");
 }
+
+fn setup_bare_test_shaders
+<'a>
+(
+    gl: Arc<GL>,
+)
+-> Result<Arc<web_sys::WebGlProgram>, &'a str>
+{
+    let vert_code = include_str!("../shaders/bare.vert");
+    let frag_code = include_str!("../shaders/bare.frag");
+    let vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
+    let frag_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
+    gl.shader_source(&vert_shader, vert_code);
+    gl.shader_source(&frag_shader, frag_code);
+    let vert_log = gl.get_shader_info_log(&vert_shader);
+    let frag_log = gl.get_shader_info_log(&frag_shader);
+    log!("vert log", vert_log);
+    log!("frag log", frag_log);
+
+    let shader_program = gl.create_program().unwrap();
+    gl.attach_shader(&shader_program, &vert_shader);
+    gl.attach_shader(&shader_program, &frag_shader);
+    gl.link_program(&shader_program);
+
+    Ok(Arc::new(shader_program))
+}
+
+fn draw_bare_test
+(
+    gl: Arc<GL>,
+    shader_program: Arc<web_sys::WebGlProgram>,
+)
+{
+    gl.use_program(Some(&shader_program));
+}
+
 
 fn draw_particles
 (
@@ -413,6 +456,8 @@ fn draw_particles
     }
 
     *switch.lock().unwrap().get_mut() = !s; 
+
+    gl.bind_vertex_array(None);
 
 }
 
@@ -732,7 +777,7 @@ fn draw_torps
     gl.vertex_attrib_pointer_with_i32(*torp_vertices_position, 2, GL::FLOAT, false, 0, 0);
     gl.enable_vertex_attrib_array(*torp_vertices_position);
 
-    gl.use_program(Some(&shader_program));
+    // gl.use_program(Some(&shader_program));
     gl.uniform1f(Some(&time_location), 0.4 as f32);
 
     for (idx, torp) in game_state.lock().unwrap()
@@ -761,12 +806,14 @@ fn draw_players
     player_vifo_theta_loc: Arc<WebGlUniformLocation>,
 )
 {
+    gl.use_program(Some(&shader_program));
     gl.bind_buffer(GL::ARRAY_BUFFER, Some(&player_vertex_buffer));
     gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &player_js_vertices, GL::STATIC_DRAW);
     gl.vertex_attrib_pointer_with_i32(*player_vertices_position, 2, GL::FLOAT, false, 0, 0);
+    // gl.vertex_attrib_pointer_with_i32(*player_vertices_position, 2, GL::FLOAT, false, 0, 0);
     gl.enable_vertex_attrib_array(*player_vertices_position);
 
-    gl.use_program(Some(&shader_program));
+    
     gl.uniform1f(Some(&time_location), 0.4 as f32);
 
     let new_pos_dx = game_state.lock().unwrap().player_one.lock().unwrap().position_dx;
@@ -777,15 +824,16 @@ fn draw_players
     let new_vifo_theta = game_state.lock().unwrap().player_one.lock().unwrap().vifo_theta;
     gl.uniform1f(Some(&player_vifo_theta_loc), new_vifo_theta.0);
     gl.draw_arrays(GL::TRIANGLES, 0, 6);
+    // gl.bind_buffer(GL::ARRAY_BUFFER, None);
 
-    let new_pos_dx = game_state.lock().unwrap().player_two.lock().unwrap().position_dx;
-    let new_pos_dy = game_state.lock().unwrap().player_two.lock().unwrap().position_dy;
+    // let new_pos_dx = game_state.lock().unwrap().player_two.lock().unwrap().position_dx;
+    // let new_pos_dy = game_state.lock().unwrap().player_two.lock().unwrap().position_dy;
 
-    gl.uniform2f(Some(&player_pos_deltas_loc), new_pos_dx, new_pos_dy);
+    // gl.uniform2f(Some(&player_pos_deltas_loc), new_pos_dx, new_pos_dy);
     
-    let new_vifo_theta = game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta;
-    gl.uniform1f(Some(&player_vifo_theta_loc), new_vifo_theta.0);
-    gl.draw_arrays(GL::TRIANGLES, 0, 6);
+    // let new_vifo_theta = game_state.lock().unwrap().player_two.lock().unwrap().vifo_theta;
+    // gl.uniform1f(Some(&player_vifo_theta_loc), new_vifo_theta.0);
+    // gl.draw_arrays(GL::TRIANGLES, 0, 6);
 }
 
 // fn update_positions 
