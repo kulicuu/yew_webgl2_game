@@ -328,29 +328,10 @@ fn render_game
 
         let torp_kill_p1 = game_state.lock().unwrap().torp_kill_player_one;
 
-        // if !prepped {
-        //     let (
-        //         particles_shader_program,
-        //         vertex_array_a,
-        //         vertex_array_b,
-        //         mut current_vertex_array,
-        //         mut current_transform_feedback,
-        //         transform_feedback_a,
-        //         transform_feedback_b,
-        //         position_buffer_a,
-        //         velocity_buffer_a, 
-        //         position_buffer_b,
-        //         velocity_buffer_b,
-        //     ) = prepare_explosion(gl.clone()).unwrap();
-        //     prepped = true;
 
-
-
-        // }
 
         
         if diag_counter > 5 {
-            // log!("on");
             draw_explosion(
                 gl.clone(),
                 particles_shader_program.clone(),
@@ -521,32 +502,39 @@ struct ExplosionPrecursors {
     velocity_buffer_b: Arc<web_sys::WebGlBuffer>, 
 }
 
-
-
 struct SingleExplosionPrecursors {
     fn take(&)
 }
 impl SingleExplosionPrecursors {
+    // approach: sometimes a singleton but sometimes the program needs to be relinked ? If explosions precursors need to be set at length time and they can't be 
+    // preserved but need to be produced at "link time." 
+
+
+
+    // 
+
+
+    // These functions below do the singleton bit, but we need an access / mutation function as well, so that we can
+
+
+
     fn take_shader_program(&mut self) -> Arc<web_sys::WebGlProgram {
         let shader_program = replace(&mut self.shader_program, None);
         shader_program.unwrap()
     }
     fn take_tuple(&mut self) -> (
-        shader_program: Arc<web_sys::WebGlProgram>, 
-        vertex_array_a: Arc<web_sys::WebGlVertexArrayObject>, 
-        vertex_array_b: Arc<web_sys::WebGlVertexArrayObject>, 
-        current_vertex_array: Arc<Mutex<web_sys::WebGlVertexArrayObject>>,  
-        current_transform_feedback: Arc<Mutex<web_sys::WebGlTransformFeedback>>, 
-        transform_feedback_a:  Arc<web_sys::WebGlTransformFeedback>,
-        transform_feedback_b: Arc<web_sys::WebGlTransformFeedback>,
-        position_buffer_a: Arc<web_sys::WebGlBuffer>, 
-        velocity_buffer_a: Arc<web_sys::WebGlBuffer>,
-        position_buffer_b: Arc<web_sys::WebGlBuffer>,
-        velocity_buffer_b: Arc<web_sys::WebGlBuffer>,  
+        Arc<web_sys::WebGlProgram>, //shader_program:
+        Arc<web_sys::WebGlVertexArrayObject>, //vertex_array_a:
+        Arc<web_sys::WebGlVertexArrayObject>, // vertex_array_b:
+        Arc<Mutex<web_sys::WebGlTransformFeedback>>, // current_transform_feedback: 
+        Arc<web_sys::WebGlTransformFeedback>, // transform_feedback_a:  
+        Arc<web_sys::WebGlTransformFeedback>, // transform_feedback_b: 
+        Arc<web_sys::WebGlBuffer>, //position_buffer_a: 
+        Arc<web_sys::WebGlBuffer>, // velocity_buffer_a:
+        Arc<web_sys::WebGlBuffer>,
+        Arc<web_sys::WebGlBuffer>,  
     )
 }
-
-
 
 fn prepare_explosion
 <'a>
