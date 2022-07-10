@@ -1,4 +1,7 @@
-#![recursion_limit = "512"]
+#![recursion_limit = "1024"]
+
+#[macro_use]
+extern crate lazy_static;
 
 mod components;
 mod services;

@@ -1,8 +1,6 @@
 #![allow(unused)]
 #![feature(drain_filter)]
 
-
-
 use web_sys::{
     HtmlCanvasElement, WebGl2RenderingContext as GL, 
     window, AngleInstancedArrays, KeyboardEvent,
@@ -44,7 +42,18 @@ const RESOLUTION : f32 = 8.0;
 const SCALE : f32 = 0.08;
 const HALF : f32 = SCALE / 2.0;
 const STEP : f32 = SCALE / RESOLUTION;
-const NUM_PARTICLES : u32 = 9500;
+// const NUM_PARTICLES : u32 = 9500;
+const NUM_PARTICLES : u32 = 9000;
+
+
+// https://stackoverflow.com/questions/27791532/how-do-i-create-a-global-mutable-singleton
+// alternative
+
+
+
+
+
+
 
 // https://github.com/rust-lang/rust/issues/48564#issuecomment-698712971
 // std::time invocation causes panic.  There is a comment linked above which solves this
@@ -165,126 +174,9 @@ fn render_game
         time_location_2,
     ) = setup_torp_shaders(gl.clone()).unwrap();
 
-
-
-
-
-
-
-    // let particles_shader_program = setup_particle_shaders(gl.clone()).unwrap();
-
-    // let mass_uniforms_location = Arc::new(Mutex::new(gl.get_uniform_block_index(&particles_shader_program, "Mass")));
-
-    // gl.uniform_block_binding(&particles_shader_program, *mass_uniforms_location.lock().unwrap(), 0);
-
-    // let position_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
-    // let velocity_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES *3) as usize]));
-    // let color_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
-
-    // for i in 0..NUM_PARTICLES {
-    //     let vec3i : usize = (i as usize) * 3;
-
-    //     position_data.lock().unwrap()[vec3i] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
-    //     position_data.lock().unwrap()[vec3i + 1] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
-    //     position_data.lock().unwrap()[vec3i + 2] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
-
-    //     color_data.lock().unwrap()[vec3i] = js_sys::Math::random() as f32;
-    //     color_data.lock().unwrap()[vec3i + 1] = js_sys::Math::random() as f32;
-    //     color_data.lock().unwrap()[vec3i + 2] = js_sys::Math::random() as f32;
-    // }
-
-    // let vertex_array_a = Arc::new(gl.create_vertex_array().unwrap());
-    // gl.bind_vertex_array(Some(&vertex_array_a));
-
-    // let position_buffer_a = Arc::new(gl.create_buffer().unwrap());
-    // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_a));
-    // let position_data_js = js_sys::Float32Array::from(position_data.lock().unwrap().as_slice());
-    // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
-    // gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
-    // gl.enable_vertex_attrib_array(0);
-
-    // let velocity_buffer_a = Arc::new(gl.create_buffer().unwrap());
-    // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_a));
-    // let velocity_data_js = js_sys::Float32Array::from(velocity_data.lock().unwrap().as_slice());
-    // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
-    // gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
-    // gl.enable_vertex_attrib_array(1);
-
-    // let color_buffer = Arc::new(gl.create_buffer().unwrap());
-    // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
-    // let color_data_js = js_sys::Float32Array::from(color_data.lock().unwrap().as_slice());
-    // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &color_data_js, GL::STATIC_DRAW);
-    // gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
-    // gl.enable_vertex_attrib_array(2);
-
-    // gl.bind_buffer(GL::ARRAY_BUFFER, None);
-
-    // // Transform feedback handles output 
-    // // https://github.com/tsherif/webgl2examples/blob/master/particles.html
-
-    // let transform_feedback_a = Arc::new(gl.create_transform_feedback().unwrap());
-    // gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_a));
-    // gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_a));
-    // gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_a));
-
-    // let vertex_array_b = Arc::new(gl.create_vertex_array().unwrap());
-    // gl.bind_vertex_array(Some(&vertex_array_b));
-
-    // let position_buffer_b = Arc::new(gl.create_buffer().unwrap());
-    // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_b));
-    // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
-    // gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
-    // gl.enable_vertex_attrib_array(0);
-
-    // let velocity_buffer_b = Arc::new((gl.create_buffer().unwrap()));
-    // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_b));
-    // gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
-    // gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
-    // gl.enable_vertex_attrib_array(1);
-
-    // gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
-    // gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
-    // gl.enable_vertex_attrib_array(2);
-
-    // gl.bind_buffer(GL::ARRAY_BUFFER, None);
-
-    // let transform_feedback_b = Arc::new(gl.create_transform_feedback().unwrap());
-    // gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_b));
-    // gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_b));
-    // gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_b));
-
-    // gl.bind_vertex_array(None);
-    // gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, None);
-
-    // let mut current_vertex_array : Arc<Mutex<_>> = Arc::new(Mutex::new((*vertex_array_a).clone()));
-    // let mut current_transform_feedback : Arc<Mutex<_>> = Arc::new(Mutex::new((*transform_feedback_b).clone()));
-
-    // let mut mass_uniform_data : [f32; 20] = [0.0; 20];
-
-    // let localized_scale = 0.5;
-    // let correction = localized_scale / 2.0;
-
-    // mass_uniform_data[0] = (js_sys::Math::random() / ((NUM_PARTICLES as f64) * 1.5)) as f32;
-    // mass_uniform_data[1] = (js_sys::Math::random() / ((NUM_PARTICLES as f64) * 1.5)) as f32;
-    // mass_uniform_data[2] = (js_sys::Math::random() / (NUM_PARTICLES as f64) * 1.5) as f32;
-
-    // mass_uniform_data[4] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-    // mass_uniform_data[5] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-    // mass_uniform_data[6] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-
-    // mass_uniform_data[8] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-    // mass_uniform_data[9] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-    // mass_uniform_data[10] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-
-    // mass_uniform_data[16] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-    // mass_uniform_data[17] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-    // mass_uniform_data[18] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-
-    // let mass_uniform_buffer = gl.create_buffer();
-    // gl.bind_buffer_base(GL::UNIFORM_BUFFER, 0, mass_uniform_buffer.as_ref());
-    // let mass_uniform_data_js = js_sys::Float32Array::from(mass_uniform_data.as_slice());
-    
-    // gl.buffer_data_with_array_buffer_view(GL::UNIFORM_BUFFER, &mass_uniform_data_js, GL::STATIC_DRAW);
+    let di = 0.2;
+    let dj = -0.3;
+    let dk = -0.4;
 
 
     let (
@@ -299,26 +191,21 @@ fn render_game
         velocity_buffer_a, 
         position_buffer_b,
         velocity_buffer_b,
-    ) = prepare_explosion(gl.clone()).unwrap();
-
-
-
+    ) = prepare_explosion(
+        gl.clone(),
+        di,
+        dj,
+        dk,
+    ).unwrap();
     let mut switch = Arc::new(Mutex::new(AtomicBool::new(true)));
     let game_state = create_game_state().unwrap();
-
     set_player_one_events(game_state.clone());
     set_player_two_events(game_state.clone());
-
     let mut cursor = game_state.lock().unwrap().start_time.elapsed().as_millis();
-
     gl.clear_color(0.99, 0.99, 0.99, 1.0);
     // gl.clear_color(0.01, 0.01, 0.01, 1.0);
     gl.enable(GL::BLEND);
     gl.blend_func(GL::ONE, GL::ONE_MINUS_SRC_ALPHA);
-
-    let bare_shader_program = setup_bare_test_shaders(gl.clone()).unwrap();
-    let mut diag_counter = 0; 
-
     let render_loop_closure = Rc::new(RefCell::new(None));
     let alias_rlc = render_loop_closure.clone();
 
@@ -334,35 +221,6 @@ fn render_game
 
         let torp_kill_p1 = game_state.lock().unwrap().torp_kill_player_one;
 
-
-
-        
-        if diag_counter > 5 {
-            draw_explosion(
-                gl.clone(),
-                particles_shader_program.clone(),
-                vertex_array_a.clone(),
-                vertex_array_b.clone(),
-                current_vertex_array.clone(),
-                current_transform_feedback.clone(),
-                transform_feedback_a.clone(),
-                transform_feedback_b.clone(),
-                position_buffer_a.clone(),
-                velocity_buffer_a.clone(), 
-                position_buffer_b.clone(),
-                velocity_buffer_b.clone(),
-                switch.clone(),
-            );
-            
-        }
-
-        diag_counter += 1;
-        if let Some((x, y)) = torp_kill_p1 {
-    
-            // make explosion at x, y
-            // so we will call a variant of draw_particles from here, not from the main closure.
-            // nah probably better to do separated draw_player_one and draw_player_two functions.
-            // inject the x,y into the new draw_explosion function.
             draw_explosion(
                 gl.clone(),
                 particles_shader_program.clone(),
@@ -379,73 +237,21 @@ fn render_game
                 switch.clone(),
             );    
     
-        } else {
-            // draw_explosion(
-            //     gl.clone(),
-            //     particles_shader_program.clone(),
-            //     vertex_array_a.clone(),
-            //     vertex_array_b.clone(),
-            //     current_vertex_array.clone(),
-            //     current_transform_feedback.clone(),
-            //     transform_feedback_a.clone(),
-            //     transform_feedback_b.clone(),
-            //     position_buffer_a.clone(),
-            //     velocity_buffer_a.clone(), 
-            //     position_buffer_b.clone(),
-            //     velocity_buffer_b.clone(),
-            //     switch.clone(),
-            // );
-            draw_player_one(
-                gl.clone(),
-                game_state.clone(),
-                player_vertex_buffer.clone(),
-                player_js_vertices.clone(),
-                player_shader_program.clone(),
-                player_vertices_position.clone(),
-                time_location.clone(),
-                player_pos_deltas_loc.clone(),
-                player_vifo_theta_loc.clone(),
-            );
 
-        }
-
-
-
-
-
-        draw_player_two(
-            gl.clone(),
-            game_state.clone(),
-            player_vertex_buffer.clone(),
-            player_js_vertices.clone(),
-            player_shader_program.clone(),
-            player_vertices_position.clone(),
-            time_location.clone(),
-            player_pos_deltas_loc.clone(),
-            player_vifo_theta_loc.clone(),
-        );
-
-
-
-        draw_torps(
-            gl.clone(),
-            game_state.clone(),
-            torp_vertex_buffer.clone(),
-            torp_js_vertices.clone(),
-            torp_shader_program.clone(),
-            torp_vertices_position.clone(),
-            time_location_2.clone(),
-            torp_pos_deltas_loc.clone(),
-            torp_vifo_theta_loc.clone(),
-        );
-
-
-
-
-
+        //     draw_player_one(
+        //         gl.clone(),
+        //         game_state.clone(),
+        //         player_vertex_buffer.clone(),
+        //         player_js_vertices.clone(),
+        //         player_shader_program.clone(),
+        //         player_vertices_position.clone(),
+        //         time_location.clone(),
+        //         player_pos_deltas_loc.clone(),
+        //         player_vifo_theta_loc.clone(),
+        //     );
+        // }
         request_animation_frame(render_loop_closure.borrow().as_ref().unwrap());
     }) as Box<dyn FnMut()>));
-
 
     request_animation_frame(alias_rlc.borrow().as_ref().unwrap());
 }
@@ -456,304 +262,254 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
         .expect("should register `requestAnimationFrame` OK");
 }
 
-fn setup_bare_test_shaders
-<'a>
-(
-    gl: Arc<GL>,
-)
--> Result<Arc<web_sys::WebGlProgram>, &'a str>
-{
-    let vert_code = include_str!("../shaders/bare.vert");
-    let frag_code = include_str!("../shaders/bare.frag");
-    let vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
-    let frag_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
-    gl.shader_source(&vert_shader, vert_code);
-    gl.shader_source(&frag_shader, frag_code);
-    let vert_log = gl.get_shader_info_log(&vert_shader);
-    let frag_log = gl.get_shader_info_log(&frag_shader);
-    log!("vert log", vert_log);
-    log!("frag log", frag_log);
-
-    let shader_program = gl.create_program().unwrap();
-    gl.attach_shader(&shader_program, &vert_shader);
-    gl.attach_shader(&shader_program, &frag_shader);
-    gl.link_program(&shader_program);
-
-    Ok(Arc::new(shader_program))
-}
-
-fn draw_bare_test
-(
-    gl: Arc<GL>,
-    shader_program: Arc<web_sys::WebGlProgram>,
-)
-{
-    gl.use_program(Some(&shader_program));
-}
 
 
 
+// struct ExplosionPrecursors {
+//     shader_program: Arc<web_sys::WebGlProgram>, 
+//     vertex_array_a: Arc<web_sys::WebGlVertexArrayObject>, 
+//     vertex_array_b: Arc<web_sys::WebGlVertexArrayObject>, 
+//     current_vertex_array: Arc<Mutex<web_sys::WebGlVertexArrayObject>>,  
+//     current_transform_feedback: Arc<Mutex<web_sys::WebGlTransformFeedback>>, 
+//     transform_feedback_a:  Arc<web_sys::WebGlTransformFeedback>,
+//     transform_feedback_b: Arc<web_sys::WebGlTransformFeedback>,
+//     position_buffer_a: Arc<web_sys::WebGlBuffer>, 
+//     velocity_buffer_a: Arc<web_sys::WebGlBuffer>,
+//     position_buffer_b: Arc<web_sys::WebGlBuffer>,
+//     velocity_buffer_b: Arc<web_sys::WebGlBuffer>, 
+// }
+// impl ExplosionPrecursors {
+//     fn create_explosion_precursors(&mut self,
+//         gl: Arc<GL>,
 
-AppPrecursors {
-    gl: Arc<GL>,
+//     ) -> Self {
+//         let particles_shader_program = setup_particle_shaders(gl.clone()).unwrap();
 
-}
-impl AppPrecursors {
-    fn replace_gl(&mut self) -> Arc<GL> {
-        let gl: GL = canvas
-            .get_context("webgl2")
-            .unwrap()
-            .unwrap()
-            .dyn_into::<GL>()
-            .unwrap();
-        let gl : Arc<GL> = Arc::new(gl);
-        self.gl = gl;
-        gl
-    }
-}
+//         let mass_uniforms_location = Arc::new(Mutex::new(gl.get_uniform_block_index(&particles_shader_program, "Mass")));
 
+//         gl.uniform_block_binding(&particles_shader_program, *mass_uniforms_location.lock().unwrap(), 0);
 
-struct TorpShaderPrecursors {
+//         let position_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
+//         let velocity_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES *3) as usize]));
+//         let color_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
 
-}
+//         for i in 0..NUM_PARTICLES {
+//             let vec3i : usize = (i as usize) * 3;
 
+//             position_data.lock().unwrap()[vec3i] = (js_sys::Math::random() as f32) * (LOCALIZED_SCALE - CORRECTION) + di;
+//             position_data.lock().unwrap()[vec3i + 1] = (js_sys::Math::random() as f32) * (LOCALIZED_SCALE - CORRECTION) + di;
+//             position_data.lock().unwrap()[vec3i + 2] = (js_sys::Math::random() as f32) * (LOCALIZED_SCALE - CORRECTION) + di;
 
+//             color_data.lock().unwrap()[vec3i] = js_sys::Math::random() as f32;
+//             color_data.lock().unwrap()[vec3i + 1] = js_sys::Math::random() as f32;
+//             color_data.lock().unwrap()[vec3i + 2] = js_sys::Math::random() as f32;
+//         }
 
-struct ExplosionPrecursors {
-    shader_program: Arc<web_sys::WebGlProgram>, 
-    vertex_array_a: Arc<web_sys::WebGlVertexArrayObject>, 
-    vertex_array_b: Arc<web_sys::WebGlVertexArrayObject>, 
-    current_vertex_array: Arc<Mutex<web_sys::WebGlVertexArrayObject>>,  
-    current_transform_feedback: Arc<Mutex<web_sys::WebGlTransformFeedback>>, 
-    transform_feedback_a:  Arc<web_sys::WebGlTransformFeedback>,
-    transform_feedback_b: Arc<web_sys::WebGlTransformFeedback>,
-    position_buffer_a: Arc<web_sys::WebGlBuffer>, 
-    velocity_buffer_a: Arc<web_sys::WebGlBuffer>,
-    position_buffer_b: Arc<web_sys::WebGlBuffer>,
-    velocity_buffer_b: Arc<web_sys::WebGlBuffer>, 
-}
-impl ExplosionPrecursors {
-    fn create_explosion_precursors(&mut self) {
-        let particles_shader_program = setup_particle_shaders(gl.clone()).unwrap();
+//         let vertex_array_a = Arc::new(gl.create_vertex_array().unwrap());
+//         gl.bind_vertex_array(Some(&vertex_array_a));
 
-        let mass_uniforms_location = Arc::new(Mutex::new(gl.get_uniform_block_index(&particles_shader_program, "Mass")));
+//         let position_buffer_a = Arc::new(gl.create_buffer().unwrap());
+//         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_a));
+//         let position_data_js = js_sys::Float32Array::from(position_data.lock().unwrap().as_slice());
+//         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
+//         gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
+//         gl.enable_vertex_attrib_array(0);
 
-        gl.uniform_block_binding(&particles_shader_program, *mass_uniforms_location.lock().unwrap(), 0);
+//         let velocity_buffer_a = Arc::new(gl.create_buffer().unwrap());
+//         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_a));
+//         let velocity_data_js = js_sys::Float32Array::from(velocity_data.lock().unwrap().as_slice());
+//         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
+//         gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
+//         gl.enable_vertex_attrib_array(1);
 
-        let position_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
-        let velocity_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES *3) as usize]));
-        let color_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
+//         let color_buffer = Arc::new(gl.create_buffer().unwrap());
+//         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
+//         let color_data_js = js_sys::Float32Array::from(color_data.lock().unwrap().as_slice());
+//         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &color_data_js, GL::STATIC_DRAW);
+//         gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
+//         gl.enable_vertex_attrib_array(2);
 
-        for i in 0..NUM_PARTICLES {
-            let vec3i : usize = (i as usize) * 3;
+//         gl.bind_buffer(GL::ARRAY_BUFFER, None);
 
-            position_data.lock().unwrap()[vec3i] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
-            position_data.lock().unwrap()[vec3i + 1] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
-            position_data.lock().unwrap()[vec3i + 2] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
+//         // Transform feedback handles output 
+//         // https://github.com/tsherif/webgl2examples/blob/master/particles.html
 
-            color_data.lock().unwrap()[vec3i] = js_sys::Math::random() as f32;
-            color_data.lock().unwrap()[vec3i + 1] = js_sys::Math::random() as f32;
-            color_data.lock().unwrap()[vec3i + 2] = js_sys::Math::random() as f32;
-        }
+//         let transform_feedback_a = Arc::new(gl.create_transform_feedback().unwrap());
+//         gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_a));
+//         gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_a));
+//         gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_a));
 
-        let vertex_array_a = Arc::new(gl.create_vertex_array().unwrap());
-        gl.bind_vertex_array(Some(&vertex_array_a));
+//         let vertex_array_b = Arc::new(gl.create_vertex_array().unwrap());
+//         gl.bind_vertex_array(Some(&vertex_array_b));
 
-        let position_buffer_a = Arc::new(gl.create_buffer().unwrap());
-        gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_a));
-        let position_data_js = js_sys::Float32Array::from(position_data.lock().unwrap().as_slice());
-        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
-        gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(0);
+//         let position_buffer_b = Arc::new(gl.create_buffer().unwrap());
+//         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_b));
+//         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
+//         gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
+//         gl.enable_vertex_attrib_array(0);
 
-        let velocity_buffer_a = Arc::new(gl.create_buffer().unwrap());
-        gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_a));
-        let velocity_data_js = js_sys::Float32Array::from(velocity_data.lock().unwrap().as_slice());
-        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
-        gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(1);
+//         let velocity_buffer_b = Arc::new((gl.create_buffer().unwrap()));
+//         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_b));
+//         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
+//         gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
+//         gl.enable_vertex_attrib_array(1);
 
-        let color_buffer = Arc::new(gl.create_buffer().unwrap());
-        gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
-        let color_data_js = js_sys::Float32Array::from(color_data.lock().unwrap().as_slice());
-        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &color_data_js, GL::STATIC_DRAW);
-        gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(2);
+//         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
+//         gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
+//         gl.enable_vertex_attrib_array(2);
 
-        gl.bind_buffer(GL::ARRAY_BUFFER, None);
+//         gl.bind_buffer(GL::ARRAY_BUFFER, None);
 
-        // Transform feedback handles output 
-        // https://github.com/tsherif/webgl2examples/blob/master/particles.html
+//         let transform_feedback_b = Arc::new(gl.create_transform_feedback().unwrap());
+//         gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_b));
+//         gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_b));
+//         gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_b));
 
-        let transform_feedback_a = Arc::new(gl.create_transform_feedback().unwrap());
-        gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_a));
-        gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_a));
-        gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_a));
+//         gl.bind_vertex_array(None);
+//         gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, None);
 
-        let vertex_array_b = Arc::new(gl.create_vertex_array().unwrap());
-        gl.bind_vertex_array(Some(&vertex_array_b));
+//         let mut current_vertex_array : Arc<Mutex<_>> = Arc::new(Mutex::new((*vertex_array_a).clone()));
+//         let mut current_transform_feedback : Arc<Mutex<_>> = Arc::new(Mutex::new((*transform_feedback_b).clone()));
 
-        let position_buffer_b = Arc::new(gl.create_buffer().unwrap());
-        gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_b));
-        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
-        gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(0);
+//         let mut mass_uniform_data : [f32; 20] = [0.0; 20];
 
-        let velocity_buffer_b = Arc::new((gl.create_buffer().unwrap()));
-        gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_b));
-        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
-        gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(1);
+//         let localized_scale = 0.5;
+//         let correction = localized_scale / 2.0;
 
-        gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
-        gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(2);
+//         mass_uniform_data[0] = (js_sys::Math::random() / ((NUM_PARTICLES as f64) * 1.5)) as f32;
+//         mass_uniform_data[1] = (js_sys::Math::random() / ((NUM_PARTICLES as f64) * 1.5)) as f32;
+//         mass_uniform_data[2] = (js_sys::Math::random() / (NUM_PARTICLES as f64) * 1.5) as f32;
 
-        gl.bind_buffer(GL::ARRAY_BUFFER, None);
+//         mass_uniform_data[4] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+//         mass_uniform_data[5] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+//         mass_uniform_data[6] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
 
-        let transform_feedback_b = Arc::new(gl.create_transform_feedback().unwrap());
-        gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_b));
-        gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_b));
-        gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_b));
+//         mass_uniform_data[8] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+//         mass_uniform_data[9] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+//         mass_uniform_data[10] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
 
-        gl.bind_vertex_array(None);
-        gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, None);
+//         mass_uniform_data[16] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+//         mass_uniform_data[17] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
+//         mass_uniform_data[18] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
 
-        let mut current_vertex_array : Arc<Mutex<_>> = Arc::new(Mutex::new((*vertex_array_a).clone()));
-        let mut current_transform_feedback : Arc<Mutex<_>> = Arc::new(Mutex::new((*transform_feedback_b).clone()));
-
-        let mut mass_uniform_data : [f32; 20] = [0.0; 20];
-
-        let localized_scale = 0.5;
-        let correction = localized_scale / 2.0;
-
-        mass_uniform_data[0] = (js_sys::Math::random() / ((NUM_PARTICLES as f64) * 1.5)) as f32;
-        mass_uniform_data[1] = (js_sys::Math::random() / ((NUM_PARTICLES as f64) * 1.5)) as f32;
-        mass_uniform_data[2] = (js_sys::Math::random() / (NUM_PARTICLES as f64) * 1.5) as f32;
-
-        mass_uniform_data[4] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-        mass_uniform_data[5] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-        mass_uniform_data[6] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-
-        mass_uniform_data[8] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-        mass_uniform_data[9] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-        mass_uniform_data[10] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-
-        mass_uniform_data[16] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-        mass_uniform_data[17] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-        mass_uniform_data[18] = ((((js_sys::Math::random() as f32) * LOCALIZED_SCALE) as f32) - CORRECTION) as f32;
-
-        let mass_uniform_buffer = gl.create_buffer();
-        gl.bind_buffer_base(GL::UNIFORM_BUFFER, 0, mass_uniform_buffer.as_ref());
-        let mass_uniform_data_js = js_sys::Float32Array::from(mass_uniform_data.as_slice());
+//         let mass_uniform_buffer = gl.create_buffer();
+//         gl.bind_buffer_base(GL::UNIFORM_BUFFER, 0, mass_uniform_buffer.as_ref());
+//         let mass_uniform_data_js = js_sys::Float32Array::from(mass_uniform_data.as_slice());
         
-        gl.buffer_data_with_array_buffer_view(GL::UNIFORM_BUFFER, &mass_uniform_data_js, GL::STATIC_DRAW);
-    }
-}
-
-
-
-
-struct WGlAppState {
-    serial: Option<SerialPort>,
-    tuple_whole: Option<(
-
-        // gl: Arc<GL>, // may not need to ever mutate.
-
-        torp_shader_precursors: TorpShaderPrecursors,
-
-        player_shader_precursors: PlayerShaderPrecursors
-
-
-        explosion_shader_precursors: ExplosionPrecursors,
-
-    )>
-}
-impl WGlAppState {
-
-
-    fn create_w_gl_app_state() -> Self {
-        // We need also to destroy old objects.  Some objects can probably be re-used. 
-        // setup the explosion transform and re-link.  maybe it's that simple.
-
-        // I don't want this to be a singleton in the sense conveyed in the Embedded Rust book, which panics if there is more than one access to the value, not exclusive of allowing refresh and new access of the value.  Restricting stale values.  Maybe just replace everything.  Literally, on the heap.
-        // 
-    }
-
-
-    // fn relink_program(&mut self) ->
-
-
-
-    // fn take_explosion_shader_program
-
-
-    fn take_w_gl_app_state(&mut self) -> Self {
-        let p = replace(&mut self, None);
-        p.unwrap()
-    }
-
-
-    fn take_serial(&mut self) -> SerialPort {
-        let p = replace(&mut self.serial, None);
-        p.unwrap()
-    }
-}
-static mut PERIPHERALS: Peripherals = Peripherals {
-    serial: Some(SerialPort),
-};
+//         gl.buffer_data_with_array_buffer_view(GL::UNIFORM_BUFFER, &mass_uniform_data_js, GL::STATIC_DRAW);
+//     }
+// }
 
 
 
 
 
 
-// struct SingleExplosionPrecursors {
-struct WGl2ApplicationState {
-    // fn take(&)
-}
-impl WGl2ApplicationState {
-    // approach: sometimes a singleton but sometimes the program needs to be relinked ? If explosions precursors need to be set at length time and they can't be 
-    // preserved but need to be produced at "link time." 
+
+
+// struct WGlAppState {
+//     serial: Option<SerialPort>,
+//     tuple_whole: Option<(
+
+//         // gl: Arc<GL>, // may not need to ever mutate.
+
+//         torp_shader_precursors: TorpShaderPrecursors,
+
+//         player_shader_precursors: PlayerShaderPrecursors
+
+
+//         explosion_shader_precursors: ExplosionPrecursors,
+
+//     )>
+// }
+// impl WGlAppState {
+
+
+//     fn create_w_gl_app_state() -> Self {
+//         // We need also to destroy old objects.  Some objects can probably be re-used. 
+//         // setup the explosion transform and re-link.  maybe it's that simple.
+
+//         // I don't want this to be a singleton in the sense conveyed in the Embedded Rust book, which panics if there is more than one access to the value, not exclusive of allowing refresh and new access of the value.  Restricting stale values.  Maybe just replace everything.  Literally, on the heap.
+//         // 
+//     }
+
+
+//     // fn relink_program(&mut self) ->
 
 
 
-    // Also need a mutate function for re-linking with explosion preparation.  Not sure if it will fix that issue.
+//     // fn take_explosion_shader_program
 
-    // This struct object needs to re-provide all the precursors, not just the explosions one, so this will be the new application state.  There wasn't one really.
-    fn mutate_relink() {
 
-    }
+//     fn take_w_gl_app_state(&mut self) -> Self {
+//         let p = replace(&mut self, None);
+//         p.unwrap()
+//     }
+
+
+//     fn take_serial(&mut self) -> SerialPort {
+//         let p = replace(&mut self.serial, None);
+//         p.unwrap()
+//     }
+// }
+// static mut PERIPHERALS: Peripherals = Peripherals {
+//     serial: Some(SerialPort),
+// };
+
+
+
+
+
+
+// // struct SingleExplosionPrecursors {
+// struct WGl2ApplicationState {
+//     // fn take(&)
+// }
+// impl WGl2ApplicationState {
+//     // approach: sometimes a singleton but sometimes the program needs to be relinked ? If explosions precursors need to be set at length time and they can't be 
+//     // preserved but need to be produced at "link time." 
+
+
+
+//     // Also need a mutate function for re-linking with explosion preparation.  Not sure if it will fix that issue.
+
+//     // This struct object needs to re-provide all the precursors, not just the explosions one, so this will be the new application state.  There wasn't one really.
+//     fn mutate_relink() {
+
+//     }
 
 
     
 
-    // These functions below do the singleton bit, but we need an access / mutation function as well, so that we can
+//     // These functions below do the singleton bit, but we need an access / mutation function as well, so that we can
 
 
 
-    fn take_shader_program(&mut self) -> Arc<web_sys::WebGlProgram {
-        let shader_program = replace(&mut self.shader_program, None);
-        shader_program.unwrap()
-    }
-    fn take_tuple(&mut self) -> (
-        Arc<web_sys::WebGlProgram>, //shader_program:
-        Arc<web_sys::WebGlVertexArrayObject>, //vertex_array_a:
-        Arc<web_sys::WebGlVertexArrayObject>, // vertex_array_b:
-        Arc<Mutex<web_sys::WebGlTransformFeedback>>, // current_transform_feedback: 
-        Arc<web_sys::WebGlTransformFeedback>, // transform_feedback_a:  
-        Arc<web_sys::WebGlTransformFeedback>, // transform_feedback_b: 
-        Arc<web_sys::WebGlBuffer>, //position_buffer_a: 
-        Arc<web_sys::WebGlBuffer>, // velocity_buffer_a:
-        Arc<web_sys::WebGlBuffer>, // 
-        Arc<web_sys::WebGlBuffer>,  // 
-    )
-}
+//     fn take_shader_program(&mut self) -> Arc<web_sys::WebGlProgram {
+//         let shader_program = replace(&mut self.shader_program, None);
+//         shader_program.unwrap()
+//     }
+//     fn take_tuple(&mut self) -> (
+//         Arc<web_sys::WebGlProgram>, //shader_program:
+//         Arc<web_sys::WebGlVertexArrayObject>, //vertex_array_a:
+//         Arc<web_sys::WebGlVertexArrayObject>, // vertex_array_b:
+//         Arc<Mutex<web_sys::WebGlTransformFeedback>>, // current_transform_feedback: 
+//         Arc<web_sys::WebGlTransformFeedback>, // transform_feedback_a:  
+//         Arc<web_sys::WebGlTransformFeedback>, // transform_feedback_b: 
+//         Arc<web_sys::WebGlBuffer>, //position_buffer_a: 
+//         Arc<web_sys::WebGlBuffer>, // velocity_buffer_a:
+//         Arc<web_sys::WebGlBuffer>, // 
+//         Arc<web_sys::WebGlBuffer>,  // 
+//     )
+// }
 
 fn prepare_explosion
 <'a>
 (
     gl: Arc<GL>,
+    di: f32,
+    dj: f32,
+    dk: f32,
 )
 -> Result<(
     Arc<web_sys::WebGlProgram>, // shader_program
@@ -783,9 +539,9 @@ fn prepare_explosion
     for i in 0..NUM_PARTICLES {
         let vec3i : usize = (i as usize) * 3;
 
-        position_data.lock().unwrap()[vec3i] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
-        position_data.lock().unwrap()[vec3i + 1] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
-        position_data.lock().unwrap()[vec3i + 2] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
+        position_data.lock().unwrap()[vec3i] = (js_sys::Math::random() as f32) * (LOCALIZED_SCALE - CORRECTION) + di;
+        position_data.lock().unwrap()[vec3i + 1] = (js_sys::Math::random() as f32) * (LOCALIZED_SCALE - CORRECTION) + dj;
+        position_data.lock().unwrap()[vec3i + 2] = (js_sys::Math::random() as f32) * (LOCALIZED_SCALE - CORRECTION) + dk;
 
         color_data.lock().unwrap()[vec3i] = js_sys::Math::random() as f32;
         color_data.lock().unwrap()[vec3i + 1] = js_sys::Math::random() as f32;
@@ -872,119 +628,119 @@ fn prepare_explosion
 }
 
 
-fn prepare_explosion_782
-<'a>
-(
-    gl: Arc<GL>,
-)
--> Result<Arc<ExplosionPrecursors>, &'a str>
-{
-    let particles_shader_program = setup_particle_shaders(gl.clone()).unwrap();
+// fn prepare_explosion_782
+// <'a>
+// (
+//     gl: Arc<GL>,
+// )
+// -> Result<Arc<ExplosionPrecursors>, &'a str>
+// {
+//     let particles_shader_program = setup_particle_shaders(gl.clone()).unwrap();
 
-    let mass_uniforms_location = Arc::new(Mutex::new(gl.get_uniform_block_index(&particles_shader_program, "Mass")));
+//     let mass_uniforms_location = Arc::new(Mutex::new(gl.get_uniform_block_index(&particles_shader_program, "Mass")));
 
-    gl.uniform_block_binding(&particles_shader_program, *mass_uniforms_location.lock().unwrap(), 0);
+//     gl.uniform_block_binding(&particles_shader_program, *mass_uniforms_location.lock().unwrap(), 0);
 
-    let position_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
-    let velocity_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES *3) as usize]));
-    let color_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
+//     let position_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
+//     let velocity_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES *3) as usize]));
+//     let color_data : Arc<Mutex<[f32; (NUM_PARTICLES * 3) as usize]>> = Arc::new(Mutex::new([0.0; (NUM_PARTICLES * 3) as usize]));
 
-    for i in 0..NUM_PARTICLES {
-        let vec3i : usize = (i as usize) * 3;
+//     for i in 0..NUM_PARTICLES {
+//         let vec3i : usize = (i as usize) * 3;
 
-        position_data.lock().unwrap()[vec3i] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
-        position_data.lock().unwrap()[vec3i + 1] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
-        position_data.lock().unwrap()[vec3i + 2] = (js_sys::Math::random() as f32) * LOCALIZED_SCALE - CORRECTION;
+//         position_data.lock().unwrap()[vec3i] = (js_sys::Math::random() as f32) * (LOCALIZED_SCALE - CORRECTION) + di;
+//         position_data.lock().unwrap()[vec3i + 1] = (js_sys::Math::random() as f32) * (LOCALIZED_SCALE - CORRECTION) + di;
+//         position_data.lock().unwrap()[vec3i + 2] = (js_sys::Math::random() as f32) * (LOCALIZED_SCALE - CORRECTION) + di;
 
-        color_data.lock().unwrap()[vec3i] = js_sys::Math::random() as f32;
-        color_data.lock().unwrap()[vec3i + 1] = js_sys::Math::random() as f32;
-        color_data.lock().unwrap()[vec3i + 2] = js_sys::Math::random() as f32;
-    }
+//         color_data.lock().unwrap()[vec3i] = js_sys::Math::random() as f32;
+//         color_data.lock().unwrap()[vec3i + 1] = js_sys::Math::random() as f32;
+//         color_data.lock().unwrap()[vec3i + 2] = js_sys::Math::random() as f32;
+//     }
 
-    let vertex_array_a = Arc::new(gl.create_vertex_array().unwrap());
-    gl.bind_vertex_array(Some(&vertex_array_a));
+//     let vertex_array_a = Arc::new(gl.create_vertex_array().unwrap());
+//     gl.bind_vertex_array(Some(&vertex_array_a));
 
-    let position_buffer_a = Arc::new(gl.create_buffer().unwrap());
-    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_a));
-    let position_data_js = js_sys::Float32Array::from(position_data.lock().unwrap().as_slice());
-    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
-    gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
-    gl.enable_vertex_attrib_array(0);
+//     let position_buffer_a = Arc::new(gl.create_buffer().unwrap());
+//     gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_a));
+//     let position_data_js = js_sys::Float32Array::from(position_data.lock().unwrap().as_slice());
+//     gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
+//     gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
+//     gl.enable_vertex_attrib_array(0);
 
-    let velocity_buffer_a = Arc::new(gl.create_buffer().unwrap());
-    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_a));
-    let velocity_data_js = js_sys::Float32Array::from(velocity_data.lock().unwrap().as_slice());
-    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
-    gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
-    gl.enable_vertex_attrib_array(1);
+//     let velocity_buffer_a = Arc::new(gl.create_buffer().unwrap());
+//     gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_a));
+//     let velocity_data_js = js_sys::Float32Array::from(velocity_data.lock().unwrap().as_slice());
+//     gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
+//     gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
+//     gl.enable_vertex_attrib_array(1);
 
-    let color_buffer = Arc::new(gl.create_buffer().unwrap());
-    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
-    let color_data_js = js_sys::Float32Array::from(color_data.lock().unwrap().as_slice());
-    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &color_data_js, GL::STATIC_DRAW);
-    gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
-    gl.enable_vertex_attrib_array(2);
+//     let color_buffer = Arc::new(gl.create_buffer().unwrap());
+//     gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
+//     let color_data_js = js_sys::Float32Array::from(color_data.lock().unwrap().as_slice());
+//     gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &color_data_js, GL::STATIC_DRAW);
+//     gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
+//     gl.enable_vertex_attrib_array(2);
 
-    gl.bind_buffer(GL::ARRAY_BUFFER, None);
+//     gl.bind_buffer(GL::ARRAY_BUFFER, None);
 
-    // Transform feedback handles output 
-    // https://github.com/tsherif/webgl2examples/blob/master/particles.html
+//     // Transform feedback handles output 
+//     // https://github.com/tsherif/webgl2examples/blob/master/particles.html
 
-    let transform_feedback_a = Arc::new(gl.create_transform_feedback().unwrap());
-    gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_a));
-    gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_a));
-    gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_a));
+//     let transform_feedback_a = Arc::new(gl.create_transform_feedback().unwrap());
+//     gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_a));
+//     gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_a));
+//     gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_a));
 
-    let vertex_array_b = Arc::new(gl.create_vertex_array().unwrap());
-    gl.bind_vertex_array(Some(&vertex_array_b));
+//     let vertex_array_b = Arc::new(gl.create_vertex_array().unwrap());
+//     gl.bind_vertex_array(Some(&vertex_array_b));
 
-    let position_buffer_b = Arc::new(gl.create_buffer().unwrap());
-    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_b));
-    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
-    gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
-    gl.enable_vertex_attrib_array(0);
+//     let position_buffer_b = Arc::new(gl.create_buffer().unwrap());
+//     gl.bind_buffer(GL::ARRAY_BUFFER, Some(&position_buffer_b));
+//     gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &position_data_js, GL::STREAM_COPY);
+//     gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
+//     gl.enable_vertex_attrib_array(0);
 
-    let velocity_buffer_b = Arc::new((gl.create_buffer().unwrap()));
-    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_b));
-    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
-    gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
-    gl.enable_vertex_attrib_array(1);
+//     let velocity_buffer_b = Arc::new((gl.create_buffer().unwrap()));
+//     gl.bind_buffer(GL::ARRAY_BUFFER, Some(&velocity_buffer_b));
+//     gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &velocity_data_js, GL::STREAM_COPY);
+//     gl.vertex_attrib_pointer_with_i32(1, 3, GL::FLOAT, false, 0, 0);
+//     gl.enable_vertex_attrib_array(1);
 
-    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
-    gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
-    gl.enable_vertex_attrib_array(2);
+//     gl.bind_buffer(GL::ARRAY_BUFFER, Some(&color_buffer));
+//     gl.vertex_attrib_pointer_with_i32(2, 3, GL::FLOAT, false, 0, 0);
+//     gl.enable_vertex_attrib_array(2);
 
-    gl.bind_buffer(GL::ARRAY_BUFFER, None);
+//     gl.bind_buffer(GL::ARRAY_BUFFER, None);
 
-    let transform_feedback_b = Arc::new(gl.create_transform_feedback().unwrap());
-    gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_b));
-    gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_b));
-    gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_b));
+//     let transform_feedback_b = Arc::new(gl.create_transform_feedback().unwrap());
+//     gl.bind_transform_feedback(GL::TRANSFORM_FEEDBACK, Some(&transform_feedback_b));
+//     gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 0, Some(&position_buffer_b));
+//     gl.bind_buffer_base(GL::TRANSFORM_FEEDBACK_BUFFER, 1, Some(&velocity_buffer_b));
 
-    let mut current_vertex_array : Arc<Mutex<_>> = Arc::new(Mutex::new((*vertex_array_a).clone()));
-    let mut current_transform_feedback : Arc<Mutex<_>> = Arc::new(Mutex::new((*transform_feedback_b).clone()));
-
-
-    Ok((Arc::new(ExplosionPrecursors {
+//     let mut current_vertex_array : Arc<Mutex<_>> = Arc::new(Mutex::new((*vertex_array_a).clone()));
+//     let mut current_transform_feedback : Arc<Mutex<_>> = Arc::new(Mutex::new((*transform_feedback_b).clone()));
 
 
-    })))
+//     Ok((Arc::new(ExplosionPrecursors {
 
-    Ok((
-        particles_shader_program,
-        vertex_array_a,
-        vertex_array_b,
-        current_vertex_array,
-        current_transform_feedback,
-        transform_feedback_a,
-        transform_feedback_b,
-        position_buffer_a,
-        velocity_buffer_a, 
-        position_buffer_b,
-        velocity_buffer_b,
-    ))
 
-}
+//     })))
+
+//     Ok((
+//         particles_shader_program,
+//         vertex_array_a,
+//         vertex_array_b,
+//         current_vertex_array,
+//         current_transform_feedback,
+//         transform_feedback_a,
+//         transform_feedback_b,
+//         position_buffer_a,
+//         velocity_buffer_a, 
+//         position_buffer_b,
+//         velocity_buffer_b,
+//     ))
+
+// }
 
 fn draw_explosion
 (
@@ -1224,7 +980,70 @@ fn setup_particle_shaders
     Ok((Arc::new(particles_shader_program)))
 }
 
-// todo: separate shader compilations 
+
+// struct PlayerShaderSystem {
+//     player_vertex_buffer: Arc<WebGlBuffer>, // player_vertex_buffer
+//     player_js_vertices: Arc<js_sys::Float32Array>, // player_js_vertices,
+//     player_shader_program: Arc<web_sys::WebGlProgram>, // player_shader_program,
+//     player_vertices_position: Arc<u32>, // player_vertices_position
+//     player_pos_deltas_loc: Arc<WebGlUniformLocation>, //player_pos_deltas_loc
+//     player_vifo_theta_loc: Arc<WebGlUniformLocation>, //player_vifo_theta_loc
+//     time_location: Arc::<WebGlUniformLocation>, // time_location
+// }
+// impl PlayerShaderSystem {
+//     fn setup_player_shaders
+//     <'a>
+//     (
+//         gl: Arc<GL>,
+//     )
+//     -> Self 
+//     {
+//         let vehicle_100_vertices: Vec<f32> = vec![
+//             0.021, 0.0, 
+//              -0.008, -0.008,
+//             -0.008, 0.008,
+//         ];
+    
+//         let vehicle_100_vert_code = include_str!("../shaders/vehicle_100.vert");
+//         let vehicle_100_vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
+//         gl.shader_source(&vehicle_100_vert_shader, vehicle_100_vert_code);
+//         gl.compile_shader(&vehicle_100_vert_shader);
+//         let vehicle_100_vert_shader_log = gl.get_shader_info_log(&vehicle_100_vert_shader);
+//         log!("vehicle_100 shader log: ", vehicle_100_vert_shader_log);
+        
+//         let frag_code = include_str!("../shaders/basic.frag");
+//         let frag_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
+//         gl.shader_source(&frag_shader, frag_code);
+//         gl.compile_shader(&frag_shader);
+//         let basic_frag_shader_log = gl.get_shader_info_log(&frag_shader);
+    
+//         let player_shader_program = gl.create_program().unwrap();
+//         gl.attach_shader(&player_shader_program, &vehicle_100_vert_shader);
+//         gl.attach_shader(&player_shader_program, &frag_shader);
+//         gl.link_program(&player_shader_program);
+        
+//         let time_location = gl.get_uniform_location(&player_shader_program, "u_time");
+    
+//         let player_vertex_buffer = gl.create_buffer().unwrap();
+//         let player_js_vertices = js_sys::Float32Array::from(vehicle_100_vertices.as_slice());
+//         let player_pos_deltas_loc = gl.get_uniform_location(&player_shader_program, "pos_deltas");
+//         let player_vifo_theta_loc =  gl.get_uniform_location(&player_shader_program, "vifo_theta");
+//         let player_vertices_position = gl.get_attrib_location(&player_shader_program, "a_position") as u32;
+        
+//         Self {
+//             player_vertex_buffer: player_vertex_buffer,
+//             player_js_vertices: player_js_vertices,
+//             player_shader_program: player_shader_program,
+//             player_vertices_position: player_vertices_position,
+//             player_pos_deltas_loc: player_pos_deltas_loc,
+//             player_vifo_theta_loc: player_vifo_theta_loc,
+//             time_location: time_location,
+//         }
+//     }
+// }
+
+
+
 fn setup_shaders
 <'a>
 (

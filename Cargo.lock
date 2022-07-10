@@ -860,6 +860,7 @@ dependencies = [
  "gloo-console",
  "gloo-net 0.2.2",
  "js-sys",
+ "lazy_static",
  "log",
  "reqwasm",
  "serde",
